@@ -1,31 +1,44 @@
 'use client';
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import {
-  Truck,
-  ArrowUpRight,
-  Radio,
-  Route,
-  ShieldCheck,
-  LayoutDashboard,
   ClipboardList,
+  CirclePlus,
+  Tag,
+  Radio,
+  CalendarDays,
   Wallet,
-  Gauge,
-  Send,
-  Plus,
-  Search,
-  ArrowRight,
-  CircleCheck,
-  ArrowDownLeft,
-  LogOut,
-  RotateCcw,
-  Download,
-  CircleHelp,
-  Timer,
-  MapPin,
   Wrench,
-  X,
-  Smartphone,
+  FileSpreadsheet,
+  ChartColumn,
+  Receipt,
+  Phone,
+  Gauge,
+  Banknote,
+  ChartPie,
+  Handshake,
+  Truck,
+  Wifi,
+  RefreshCw,
+  Volume2,
+  Moon,
+  LogOut,
+  Grid2X2,
+  Search,
+  Bell,
+  ChevronDown,
   ChevronRight,
+  MoreHorizontal,
+  SquareParking,
+  Trash2,
+  X,
+  Send,
+  Download,
+  ArrowUpRight,
+  RotateCcw,
+  Fuel,
+  Archive,
+  CircleHelp,
+  UserRound,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -45,18 +58,6 @@ import {
   SelectItem,
 } from '@/components/ui/select';
 import {
-  SidebarProvider,
-  Sidebar,
-  SidebarHeader,
-  SidebarContent,
-  SidebarFooter,
-  SidebarMenu,
-  SidebarMenuItem,
-  SidebarMenuButton,
-  useSidebar,
-  SidebarTrigger,
-} from '@/components/ui/sidebar';
-import {
   applyAction,
   createSeed,
   readSaved,
@@ -68,17 +69,30 @@ import {
   type Action,
   type Order,
   type Role,
-  type Status,
 } from './model';
+import { useDemoTools } from './webmcp';
 const STORE = 'meluwi-evacuation-demo-v1';
-type Page = 'overview' | 'orders' | 'fleet' | 'finance' | 'telegram';
-const pages = [
-  { id: 'overview' as Page, label: 'Обзор смены', icon: LayoutDashboard },
-  { id: 'orders' as Page, label: 'Заявки', icon: ClipboardList },
-  { id: 'fleet' as Page, label: 'Автопарк', icon: Truck },
-  { id: 'finance' as Page, label: 'Финансы', icon: Wallet },
-  { id: 'telegram' as Page, label: 'Telegram', icon: Send },
-];
+const nav = [
+  ['orders', 'Заявки', ClipboardList],
+  ['create', 'Новая', CirclePlus],
+  ['price', 'Прайс', Tag],
+  ['line', 'Линия', Radio],
+  ['schedule', 'График', CalendarDays],
+  ['expenses', 'Расходы', Wallet],
+  ['maintenance', 'Т.О.', Wrench],
+  ['finance', 'Отчёт', FileSpreadsheet],
+  ['week', 'Неделя', ChartColumn],
+  ['details', 'Детализация', Receipt],
+  ['calls', 'Звонки', Phone],
+  ['mileage', 'Пробег', Gauge],
+  ['cash', 'Касса', Banknote],
+  ['dashboard', 'Дашборд', ChartPie],
+  ['partners', 'Партнёрка', Handshake],
+  ['telegram', 'Telegram', Send],
+] as const;
+type Page = (typeof nav)[number][0] | 'fleet' | 'more';
+const desktopLabel = (id: Page) =>
+  nav.find((n) => n[0] === id)?.[1] || (id === 'fleet' ? 'Парк' : 'Ещё');
 function Choose({
   value,
   onChange,
@@ -96,7 +110,7 @@ function Choose({
       onValueChange={(v) => v !== null && onChange(v)}
       items={options}
     >
-      <SelectTrigger aria-label={label} className="choose">
+      <SelectTrigger className="tp-select" aria-label={label}>
         <SelectValue />
       </SelectTrigger>
       <SelectContent>
@@ -109,124 +123,151 @@ function Choose({
     </Select>
   );
 }
-function Badge({ status }: { status: Status }) {
+function Brand({ driver = false }: { driver?: boolean }) {
   return (
-    <span className={`status status-${status}`}>
-      <i />
-      {statusLabels[status]}
-    </span>
+    <div className="tp-brand">
+      <img src="/technoprime.png" alt="Технопрайм" width="40" height="40" />
+      <div>
+        {driver ? (
+          <>
+            ТЕХНО ПРАЙМ ·<small>кабинет</small>
+          </>
+        ) : (
+          <>
+            ТЕХНО<span>ПРАЙМ</span>
+            <small>СЛУЖБА ЭВАКУАЦИИ</small>
+          </>
+        )}
+      </div>
+    </div>
   );
 }
-function Navigation({
-  page,
-  setPage,
-  role,
-  onExit,
-  onReset,
-}: {
-  page: Page;
-  setPage: (p: Page) => void;
-  role: Role;
-  onExit: () => void;
-  onReset: () => void;
-}) {
-  const { setOpenMobile } = useSidebar();
+const stage = (o: Order) =>
+  o.status === 'done'
+    ? 'Завершён'
+    : o.status === 'cancelled'
+      ? 'Отменён'
+      : 'В работе';
+function OrderDocument({ order: o }: { order: Order }) {
   return (
-    <Sidebar>
-      <SidebarHeader className="nav-brand">
-        <Truck />
+    <div className="order-document">
+      <div className="document-title">
+        <strong>№ {String(o.id).padStart(4, '0')}</strong>
         <div>
-          ЭВАКУАЦИЯ<small>CRM / ДЕМОВЕРСИЯ</small>
+          <span>
+            ТИП <b>{o.partner ? 'Договорной' : 'Срочный'}</b>
+          </span>
+          <em>{stage(o)}</em>
         </div>
-      </SidebarHeader>
-      <SidebarContent className="side-content">
-        <p className="nav-section">РАБОЧЕЕ ПРОСТРАНСТВО</p>
-        <SidebarMenu>
-          {pages
-            .filter(
-              (p) =>
-                role === 'dispatcher' ||
-                ['overview', 'orders', 'fleet'].includes(p.id),
-            )
-            .map((p) => (
-              <SidebarMenuItem key={p.id}>
-                <SidebarMenuButton
-                  className="side-link"
-                  isActive={page === p.id}
-                  onClick={() => {
-                    setPage(p.id);
-                    setOpenMobile(false);
-                  }}
-                >
-                  <p.icon />
-                  <span>{p.label}</span>
-                  {page === p.id && <ChevronRight className="nav-chevron" />}
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            ))}
-        </SidebarMenu>
-        <div className="sidebar-tip">
-          <Radio />
-          <strong>Попробуйте полный рейс</strong>
-          <p>Назначьте водителя → начните поездку → завершите заказ.</p>
-          <span>Пробег и отчёт обновятся сами.</span>
+      </div>
+      <div className="document-meta">
+        <div>
+          <small>СФОРМИРОВАНА</small>
+          <b>07.09.2026 {o.time}</b>
         </div>
-      </SidebarContent>
-      <SidebarFooter className="sidebar-foot">
-        <a
-          href="https://meluwi-portfolio.adapage1981.chatgpt.site/projects/evacuation"
-          target="_blank"
-          rel="noreferrer"
-        >
-          Кейс проекта <ArrowUpRight size={15} />
-        </a>
-        <Button variant="ghost" onClick={onReset}>
-          <RotateCcw /> Сбросить демо
-        </Button>
-        <Button variant="ghost" onClick={onExit}>
-          <LogOut /> Сменить роль
-        </Button>
-        <div className="author">
-          Разработано{' '}
-          <a
-            href="https://github.com/MELUWIs/evacuation-crm-demo"
-            target="_blank"
-            rel="noreferrer"
-          >
-            MELUWI ↗
-          </a>
+        <div>
+          <small>ЗАВЕРШЕНА</small>
+          <b>{o.status === 'done' ? '07.09.2026' : 'ещё нет'}</b>
         </div>
-      </SidebarFooter>
-    </Sidebar>
+        <div>
+          <small>ДИСПЕТЧЕР</small>
+          <b>Диспетчер Demo</b>
+          <span>Демонстрационная смена</span>
+        </div>
+      </div>
+      <div className="document-route">
+        <p>
+          <b>А</b>
+          {o.from}
+        </p>
+        <p>
+          <b>Б</b>
+          {o.to}
+        </p>
+      </div>
+      <div className="telegram-text">
+        <p>
+          📌 Новый заказ 📌<br />
+          Тип заказа: {o.partner ? 'Договорной' : 'Срочный'}
+          <br />
+          1) Имя клиента: {o.client}
+          <br />
+          2) Номер телефона: не указан · демо
+          <br />
+          3) Авто: {o.car}
+          <br />
+          4) Категория авто: Легковой транспорт
+          <br />
+          5) Гос. номер: ДЕМО
+          <br />
+          6) Дата: 07.09.2026
+        </p>
+        <p>Км по маршруту: {o.km}</p>
+        <p>Начальная точка: {o.from}</p>
+        <p>ДО: {o.to}</p>
+        <p>
+          Стоимость: {money(o.price)}
+          <br />
+          Оплата: {o.payment === 'cash' ? 'Наличные' : 'Перевод'}
+          <br />
+          Водитель: {o.driver || 'Не назначен'}
+        </p>
+      </div>
+    </div>
+  );
+}
+function Panel({
+  title,
+  children,
+  className = '',
+}: {
+  title: string;
+  children: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <section className={`tp-panel ${className}`}>
+      <h3>{title}</h3>
+      <div className="panel-body">{children}</div>
+    </section>
   );
 }
 export default function Home() {
-  const [role, setRole] = useState<Role | null>(null);
-  const [pick, setPick] = useState<Role>('dispatcher');
-  const [password, setPassword] = useState('');
-  const [loginError, setLoginError] = useState('');
-  const [state, setState] = useState<State>(createSeed);
-  const [ready, setReady] = useState(false);
-  const [page, setPage] = useState<Page>('overview');
-  const [filter, setFilter] = useState('all');
-  const [query, setQuery] = useState('');
-  const [modal, setModal] = useState<
-    'create' | 'expense' | 'reset' | 'help' | null
-  >(null);
-  const [selected, setSelected] = useState<number | null>(null);
-  const [notice, setNotice] = useState('');
-  const [error, setError] = useState('');
-  const [driver, setDriver] = useState(driverNames[0]);
-  const [distance, setDistance] = useState('');
-  const stateRef = useRef(state);
-  stateRef.current = state;
-  const roleRef = useRef(role);
-  roleRef.current = role;
+  const [role, setRole] = useState<Role | null>(null),
+    [pick, setPick] = useState<Role>('dispatcher'),
+    [password, setPassword] = useState(''),
+    [loginError, setLoginError] = useState('');
+  const [state, setState] = useState<State>(createSeed),
+    [ready, setReady] = useState(false),
+    [page, setPage] = useState<Page>('orders'),
+    [filter, setFilter] = useState('active'),
+    [query, setQuery] = useState('');
+  const [modal, setModal] = useState<'expense' | 'reset' | 'help' | null>(null),
+    [selected, setSelected] = useState<number | null>(null),
+    [notice, setNotice] = useState(''),
+    [error, setError] = useState('');
+  const [driver, setDriver] = useState(driverNames[0]),
+    [distance, setDistance] = useState(''),
+    [source, setSource] = useState(''),
+    [kind, setKind] = useState('urgent');
+  const [onLine, setOnLine] = useState(true),
+    [notifications, setNotifications] = useState(false);
+  const stateRef = useRef(state),
+    roleRef = useRef(role);
+  useEffect(() => {
+    stateRef.current = state;
+    roleRef.current = role;
+  }, [state, role]);
   useEffect(() => {
     try {
-      setState(readSaved(localStorage.getItem(STORE)));
+      const loaded = readSaved(localStorage.getItem(STORE));
+      setState(loaded);
+      stateRef.current = loaded;
       const saved = sessionStorage.getItem('evacuation-demo-role');
-      if (saved === 'dispatcher' || saved === 'driver') setRole(saved);
+      if (saved === 'dispatcher' || saved === 'driver') {
+        setRole(saved);
+        roleRef.current = saved;
+      }
     } catch {}
     setReady(true);
   }, []);
@@ -235,16 +276,15 @@ export default function Home() {
       try {
         localStorage.setItem(STORE, JSON.stringify(state));
       } catch {
-        setNotice(
-          'Хранилище недоступно. Изменения сохранятся до обновления страницы.',
-        );
+        setNotice('Изменения сохранятся до обновления страницы.');
       }
   }, [state, ready]);
   useEffect(() => {
     if (!notice) return;
-    const timer = setTimeout(() => setNotice(''), 5000);
-    return () => clearTimeout(timer);
+    const t = setTimeout(() => setNotice(''), 4000);
+    return () => clearTimeout(t);
   }, [notice]);
+  useDemoTools(stateRef, roleRef, setPage, setSelected, setDriver, setDistance);
   function act(action: Action) {
     try {
       const next = applyAction(stateRef.current, action);
@@ -262,72 +302,6 @@ export default function Home() {
       return false;
     }
   }
-  useEffect(() => {
-    type Context = {
-      registerTool: (
-        tool: unknown,
-        options: { signal: AbortSignal },
-      ) => void | Promise<void>;
-    };
-    const ctx = (document as Document & { modelContext?: Context })
-      .modelContext;
-    if (!ctx) return;
-    const lifecycle = new AbortController();
-    const tools = [
-      {
-        name: 'get_demo_orders',
-        description:
-          'Read the synthetic evacuation orders visible to the currently selected demo role.',
-        inputSchema: {
-          type: 'object',
-          properties: {},
-          additionalProperties: false,
-        },
-        annotations: { readOnlyHint: true, untrustedContentHint: true },
-        execute: () => {
-          if (!roleRef.current) throw Error('Choose a demo role first.');
-          return stateRef.current.orders.filter(
-            (o) =>
-              roleRef.current === 'dispatcher' || o.driver === driverNames[0],
-          );
-        },
-      },
-      {
-        name: 'open_demo_order',
-        description:
-          'Navigate to an existing demo order detail. This does not change the order.',
-        inputSchema: {
-          type: 'object',
-          properties: { id: { type: 'integer' } },
-          required: ['id'],
-          additionalProperties: false,
-        },
-        annotations: { readOnlyHint: false },
-        execute: (input: unknown) => {
-          const id = (input as { id?: number })?.id;
-          const o = stateRef.current.orders.find((o) => o.id === id);
-          if (
-            !roleRef.current ||
-            !o ||
-            (roleRef.current === 'driver' && o.driver !== driverNames[0])
-          )
-            throw Error('Order unavailable.');
-          setPage('orders');
-          setSelected(o.id);
-          setDriver(o.driver || driverNames[0]);
-          setDistance(String(o.km));
-          return { id: o.id, opened: true };
-        },
-      },
-    ];
-    for (const tool of tools)
-      try {
-        void Promise.resolve(
-          ctx.registerTool(tool, { signal: lifecycle.signal }),
-        ).catch(() => {});
-      } catch {}
-    return () => lifecycle.abort();
-  }, []);
   function login(e: FormEvent) {
     e.preventDefault();
     if (password !== 'meluwi-demo') {
@@ -335,18 +309,28 @@ export default function Home() {
       return;
     }
     setRole(pick);
-    setPage('overview');
+    roleRef.current = pick;
+    setPage('orders');
+    setFilter('active');
     try {
       sessionStorage.setItem('evacuation-demo-role', pick);
     } catch {}
   }
   function logout() {
     setRole(null);
-    setPage('overview');
+    roleRef.current = null;
     setSelected(null);
+    setPage('orders');
+    setError('');
     try {
       sessionStorage.removeItem('evacuation-demo-role');
     } catch {}
+  }
+  function go(p: Page) {
+    setPage(p);
+    setError('');
+    setQuery('');
+    window.scrollTo({ top: 0, behavior: 'instant' });
   }
   function openOrder(o: Order) {
     setSelected(o.id);
@@ -354,609 +338,1096 @@ export default function Home() {
     setDistance(String(o.km));
     setError('');
   }
-  const totals = summary(state);
-  const visible = state.orders.filter(
-    (o) => role !== 'driver' || o.driver === driverNames[0],
-  );
-  const active = visible.filter(
-    (o) => !['done', 'cancelled'].includes(o.status),
-  );
-  const order = visible.find((o) => o.id === selected);
+  const totals = summary(state),
+    visible = state.orders.filter(
+      (o) => role !== 'driver' || o.driver === driverNames[0],
+    );
+  const isActive = (o: Order) => !['done', 'cancelled'].includes(o.status);
+  function matches(o: Order, f: string) {
+    if (f === 'all') return true;
+    if (f === 'active') return isActive(o);
+    if (f === 'partners') return o.partner;
+    if (f === 'done-partner') return o.partner && o.status === 'done';
+    if (f === 'done') return !o.partner && o.status === 'done';
+    return o.status === f;
+  }
   const filtered = visible.filter(
     (o) =>
-      (filter === 'all' || o.status === filter) &&
+      matches(o, filter) &&
       `${o.id} ${o.car} ${o.client} ${o.from} ${o.driver}`
         .toLowerCase()
         .includes(query.toLowerCase()),
   );
-  function openModal(m: typeof modal) {
-    setError('');
-    setModal(m);
+  const order = visible.find((o) => o.id === selected);
+  const filters =
+    role === 'driver'
+      ? [
+          ['active', 'Все актуальные'],
+          ['enroute', 'В работе'],
+          ['scheduled', 'Запланир.'],
+          ['approval', 'Согласование'],
+          ['assigned', 'Новые'],
+          ['done', 'Завершённые'],
+        ]
+      : [
+          ['approval', 'Согласование'],
+          ['scheduled', 'Запланир.'],
+          ['active', 'В работе'],
+          ['partners', 'Договорные'],
+          ['pre-done', 'Предварительно завершённые'],
+          ['done', 'Завершённые'],
+          ['cancelled', 'Отменённые'],
+          ['done-partner', 'Завершённые партнёры'],
+          ['deleted', 'Удалённые'],
+        ];
+  function exportReport() {
+    const quote = (s: unknown) =>
+      `"${String(s)
+        .replace(/^[=+@-]/, "'$&")
+        .replaceAll('"', '""')}"`;
+    const csv =
+      '\uFEFF' +
+      [
+        ['Заявка', 'Автомобиль', 'Водитель', 'Статус', 'Сумма', 'Км'],
+        ...state.orders.map((o) => [
+          o.id,
+          o.car,
+          o.driver,
+          statusLabels[o.status],
+          o.price,
+          o.km,
+        ]),
+      ]
+        .map((row) => row.map(quote).join(';'))
+        .join('\r\n');
+    const url = URL.createObjectURL(
+      new Blob([csv], { type: 'text/csv;charset=utf-8' }),
+    );
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'evacuation-demo-report.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+  function createOrder(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    if (!source) {
+      setError('Выберите источник заявки.');
+      return;
+    }
+    const data = new FormData(e.currentTarget);
+    if (
+      act({
+        type: 'create',
+        order: {
+          client: String(data.get('client') || 'Клиент Demo'),
+          car: String(data.get('car')),
+          from: String(data.get('from')),
+          to: String(data.get('to')),
+          price: Number(data.get('price')),
+          km: Number(data.get('km')),
+          driver: '',
+          payment: data.get('payment') === 'cash' ? 'cash' : 'card',
+          partner: kind === 'partner',
+        },
+      })
+    ) {
+      go('orders');
+      setFilter('active');
+    }
   }
   if (!role)
     return (
-      <main className="demo-entry">
-        <div className="entry-brand">
-          <Truck /> ЭВАКУАЦИЯ <span>CRM / DEMO</span>
-        </div>
-        <section className="entry-grid">
-          <div>
-            <p className="overline">
-              ПРОЕКТ MELUWI · ОКОЛО 1,5 МЕСЯЦЕВ РАЗРАБОТКИ
+      <main className="tp-login">
+        <form onSubmit={login}>
+          <Brand />
+          <h1>Вход в CRM</h1>
+          <p>Демонстрация на вымышленных данных</p>
+          <Tabs value={pick} onValueChange={(v) => setPick(v as Role)}>
+            <TabsList className="login-roles">
+              <TabsTrigger value="dispatcher">Диспетчер</TabsTrigger>
+              <TabsTrigger value="driver">Водитель</TabsTrigger>
+            </TabsList>
+          </Tabs>
+          <label htmlFor="demo-password">Тестовый пароль</label>
+          <Input
+            id="demo-password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="meluwi-demo"
+            autoComplete="off"
+          />
+          <button
+            type="button"
+            className="password-hint"
+            onClick={() => setPassword('meluwi-demo')}
+          >
+            Подставить пароль <code>meluwi-demo</code>
+          </button>
+          {loginError && (
+            <p role="alert" className="error-text">
+              {loginError}
             </p>
-            <h1>
-              Вся смена.
-              <br />В одном
-              <br />
-              <em>интерфейсе.</em>
-            </h1>
-            <p className="entry-lead">
-              От первого звонка до закрытого заказа.
-              <br />
-              Рабочее пространство службы эвакуации.
-            </p>
-            <div className="entry-features">
-              <span>
-                <Radio /> Диспетчерская
-              </span>
-              <span>
-                <Route /> Водители и пробег
-              </span>
-              <span>
-                <Smartphone /> Мобильный интерфейс
-              </span>
-            </div>
-          </div>
-          <form className="entry-card" onSubmit={login}>
-            <div className="entry-card-top">
-              <ShieldCheck />
-              <span>ИНТЕРАКТИВНАЯ ДЕМОНСТРАЦИЯ</span>
-            </div>
-            <h2>Сядьте за пульт.</h2>
-            <p>Выберите роль и попробуйте рабочую смену.</p>
-            <Tabs value={pick} onValueChange={(v) => setPick(v as Role)}>
-              <TabsList className="role-tabs">
-                <TabsTrigger value="dispatcher">
-                  <Radio /> Диспетчер
-                </TabsTrigger>
-                <TabsTrigger value="driver">
-                  <Truck /> Водитель
-                </TabsTrigger>
-              </TabsList>
-            </Tabs>
-            <label className="field-label" htmlFor="demo-password">
-              Тестовый пароль
-            </label>
-            <Input
-              id="demo-password"
-              value={password}
-              type="text"
-              autoComplete="off"
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="meluwi-demo"
-            />
-            <button
-              className="password-hint"
-              type="button"
-              onClick={() => setPassword('meluwi-demo')}
-            >
-              Подставить пароль <code>meluwi-demo</code> ↗
-            </button>
-            {loginError && (
-              <p role="alert" className="error-text">
-                {loginError}
-              </p>
-            )}
-            <Button type="submit" className="gold-button" disabled={!ready}>
-              Войти как {pick === 'dispatcher' ? 'диспетчер' : 'водитель'}{' '}
-              <ArrowUpRight />
-            </Button>
-            <div className="demo-note">
-              Это демонстрационный вход, без регистрации. Все данные вымышлены.
-              Изменения хранятся только в этом браузере. Реальные данные вводить
-              не нужно.
-            </div>
-          </form>
-        </section>
-        <footer>
-          MELUWI <span>FULL-STACK DEVELOPMENT · WEB + ANDROID</span>
-        </footer>
+          )}
+          <Button className="gold-button" disabled={!ready} type="submit">
+            Войти как {pick === 'dispatcher' ? 'диспетчер' : 'водитель'}{' '}
+            <ChevronRight />
+          </Button>
+          <small>
+            Все изменения хранятся в этом браузере. Рабочая база и Telegram не
+            подключены.
+          </small>
+          <a href="https://meluwi-portfolio.adapage1981.chatgpt.site/#projects">
+            MELUWI · к портфолио <ArrowUpRight size={12} />
+          </a>
+        </form>
       </main>
     );
   return (
-    <SidebarProvider
-      style={{ '--sidebar-width': '238px' } as React.CSSProperties}
-    >
-      <Navigation
-        page={page}
-        setPage={(p) => {
-          setPage(p);
-          setError('');
-        }}
-        role={role}
-        onExit={logout}
-        onReset={() => openModal('reset')}
-      />
-      <main className={`workspace role-${role}`}>
-        <header className="workspace-top">
-          <div>
-            <SidebarTrigger className="mobile-menu" />
-            <span className="breadcrumb">
-              Рабочее пространство <ChevronRight size={13} />
-            </span>
-            <span>{pages.find((p) => p.id === page)?.label}</span>
+    <div className={`tp-app ${role === 'driver' ? 'driver-app' : ''}`}>
+      {role === 'dispatcher' ? (
+        <header className="tp-header">
+          <div className="brand-row">
+            <Brand />
+            <button className="demo-badge" onClick={() => setModal('help')}>
+              ДЕМО <CircleHelp size={12} />
+            </button>
           </div>
-          <div className="profile">
-            <i className="online-dot" />
-            <span>{role === 'driver' ? 'Водитель 01' : 'Диспетчер Demo'}</span>
-            <span className="avatar">{role === 'driver' ? 'В1' : 'ДД'}</span>
-          </div>
-        </header>
-        <div className="sandbox-bar">
-          <span>
-            <ShieldCheck size={13} /> Песочница · вымышленные данные
-          </span>
-          <button onClick={() => openModal('help')}>
-            Как попробовать <CircleHelp size={13} />
-          </button>
-        </div>
-        <div className="workspace-body">
-          <div className="page-heading">
-            <div>
-              <p className="overline">
-                {role === 'driver'
-                  ? 'МОБИЛЬНОЕ РАБОЧЕЕ МЕСТО'
-                  : 'ДИСПЕТЧЕРСКАЯ · ДЕМО-СМЕНА 001'}
-              </p>
-              <h1>
-                {page === 'overview'
-                  ? role === 'driver'
-                    ? 'Хорошего рейса.'
-                    : 'Всё под контролем.'
-                  : pages.find((p) => p.id === page)?.label}
-              </h1>
-              <p>
-                {page === 'overview'
-                  ? role === 'driver'
-                    ? 'Ваши задания, маршрут и завершение рейса.'
-                    : 'Заявки, экипажи и деньги — картина текущей смены.'
-                  : page === 'orders'
-                    ? 'От заявки до доставки. Откройте карточку, чтобы продолжить.'
-                    : page === 'fleet'
-                      ? 'Пробег автоматически обновляется после завершения рейса.'
-                      : page === 'finance'
-                        ? 'Суммы рассчитаны по завершённым заявкам этой демо-смены.'
-                        : 'События CRM в тематических ветках — локальная симуляция.'}
-              </p>
-            </div>
-            {role === 'dispatcher' && ['overview', 'orders'].includes(page) && (
-              <Button
-                className="gold-button"
-                disabled={!state.shift}
-                onClick={() => openModal('create')}
+          <nav className="desktop-nav" aria-label="Разделы CRM">
+            {nav.map(([id, label, Icon]) => (
+              <button
+                key={id}
+                className={page === id ? 'active' : ''}
+                onClick={() => go(id)}
               >
-                <Plus /> Новая заявка
-              </Button>
-            )}
-          </div>
-          {error && !modal && !selected && (
-            <div className="error-banner" role="alert">
-              {error}
-              <button onClick={() => setError('')} aria-label="Скрыть ошибку">
-                <X size={15} />
+                <Icon size={14} />
+                {label}
               </button>
+            ))}
+          </nav>
+          <div className="header-tools">
+            <div className="mobile-logo">
+              <Brand />
             </div>
-          )}
-          {page === 'overview' && (
-            <>
-              <div className="stats-grid">
-                <Stat
-                  label="В работе"
-                  value={String(active.length).padStart(2, '0')}
-                  sub="активные заявки"
-                  icon={ClipboardList}
+            {page === 'orders' && (
+              <label className="search-field">
+                <Search size={14} />
+                <Input
+                  aria-label="Поиск заявок"
+                  placeholder="Поиск заявок..."
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
                 />
-                <Stat
-                  label="Завершено"
-                  value={String(
-                    visible.filter((o) => o.status === 'done').length,
-                  ).padStart(2, '0')}
-                  sub="рейсов за смену"
-                  icon={CircleCheck}
-                />
-                <Stat
-                  label={role === 'driver' ? 'Ваш пробег' : 'Выручка'}
-                  value={
-                    role === 'driver'
-                      ? `${visible.filter((o) => o.status === 'done').reduce((a, o) => a + o.km, 0)} км`
-                      : money(totals.revenue)
-                  }
-                  sub={
-                    role === 'driver'
-                      ? 'завершённые рейсы'
-                      : 'по завершённым заявкам'
-                  }
-                  icon={role === 'driver' ? Gauge : Wallet}
-                />
-                <Stat
-                  label="На линии"
-                  value={role === 'driver' ? '01' : '03'}
-                  sub={
-                    role === 'driver'
-                      ? 'эвакуатор закреплён за вами'
-                      : 'эвакуатора в демо-парке'
-                  }
-                  icon={Truck}
-                />
-              </div>
-              <div className="overview-grid">
-                <section className="panel">
-                  <div className="panel-heading">
-                    <h2>
-                      Активные заявки <span>{active.length}</span>
-                    </h2>
-                    <button
-                      onClick={() => {
-                        setPage('orders');
-                        setFilter('all');
-                      }}
-                    >
-                      Все заявки <ArrowUpRight size={15} />
-                    </button>
-                  </div>
-                  <div className="order-list">
-                    {active.length ? (
-                      active.map((o) => (
-                        <OrderCard
-                          key={o.id}
-                          order={o}
-                          onOpen={() => openOrder(o)}
-                        />
-                      ))
-                    ) : (
-                      <Empty text="Активных заявок нет. Всё доставлено." />
-                    )}
-                  </div>
-                </section>
-                <div className="overview-rail">
-                  <section className="shift-panel">
-                    <div className="panel-heading">
-                      <span className="overline">ТЕКУЩАЯ СМЕНА</span>
-                      <span
-                        className={state.shift ? 'shift-open' : 'shift-closed'}
-                      >
-                        {state.shift ? 'Открыта' : 'Закрыта'}
-                      </span>
-                    </div>
-                    <div className="shift-number">
-                      001<span>ДЕМО</span>
-                    </div>
-                    <p>
-                      Диспетчер Demo
-                      <br />
-                      <span>Смена началась в 09:00</span>
-                    </p>
-                    <div className="shift-progress">
-                      <i
-                        style={{
-                          width: `${(totals.done / Math.max(1, state.orders.length)) * 100}%`,
-                        }}
-                      />
-                    </div>
-                    <small>
-                      {totals.done} из {state.orders.length} заявок завершено
-                    </small>
-                    {role === 'dispatcher' && (
-                      <Button
-                        variant="outline"
-                        onClick={() => act({ type: 'shift' })}
-                      >
-                        {state.shift ? 'Закрыть смену' : 'Открыть смену'}{' '}
-                        <ArrowRight />
-                      </Button>
-                    )}
-                  </section>
-                  <section className="panel crew-panel">
-                    <div className="panel-heading">
-                      <h2>Экипажи</h2>
-                      <Radio size={15} />
-                    </div>
-                    {state.vehicles
-                      .filter(
-                        (v) =>
-                          role === 'dispatcher' || v.driver === driverNames[0],
-                      )
-                      .map((v) => (
-                        <div className="crew" key={v.id}>
-                          <span className="crew-icon">
-                            <Truck size={18} />
-                          </span>
-                          <div>
-                            <strong>{v.driver}</strong>
-                            <small>{v.name}</small>
-                          </div>
-                          <i
-                            className={`crew-dot ${state.orders.some((o) => o.driver === v.driver && ['assigned', 'enroute'].includes(o.status)) ? 'busy' : ''}`}
-                          />
-                        </div>
-                      ))}
-                    <p className="legend">
-                      <i /> Свободен <i className="busy" /> На задании
-                    </p>
-                  </section>
-                </div>
-              </div>
-              <section className="event-strip">
-                <div>
-                  <Send size={18} />
-                  <strong>Последнее событие</strong>
-                </div>
-                <p>{state.events[0]?.text}</p>
-                <span>{state.events[0]?.time}</span>
-              </section>
-            </>
-          )}
-          {page === 'orders' && (
-            <section className="panel orders-panel">
-              <div className="orders-tools">
-                <div className="search-box">
-                  <Search size={17} />
-                  <Input
-                    aria-label="Поиск заявок"
-                    placeholder="Номер, автомобиль, маршрут…"
-                    value={query}
-                    onChange={(e) => setQuery(e.target.value)}
-                  />
-                </div>
-                <Choose
-                  value={filter}
-                  onChange={setFilter}
-                  label="Статус заявок"
-                  options={[
-                    { value: 'all', label: 'Все статусы' },
-                    ...Object.entries(statusLabels).map(([value, label]) => ({
-                      value,
-                      label,
-                    })),
-                  ]}
-                />
-              </div>
-              <div className="orders-count">Найдено: {filtered.length}</div>
-              <div className="order-list">
-                {filtered.length ? (
-                  filtered.map((o) => (
-                    <OrderCard
-                      key={o.id}
-                      order={o}
-                      onOpen={() => openOrder(o)}
-                    />
-                  ))
-                ) : (
-                  <Empty text="Заявки не найдены. Попробуйте другой фильтр." />
-                )}
-              </div>
-            </section>
-          )}
-          {page === 'fleet' && (
-            <>
-              <div className="fleet-grid">
-                {state.vehicles
-                  .filter(
-                    (v) => role === 'dispatcher' || v.driver === driverNames[0],
-                  )
-                  .map((v) => (
-                    <section className="panel vehicle-card" key={v.id}>
-                      <div className="vehicle-number">
-                        <Truck size={42} strokeWidth={1} />
-                        <span>{v.id}</span>
-                      </div>
-                      <h2>{v.name}</h2>
-                      <p>{v.driver} · платформа со сдвигом</p>
-                      <div className="odometer">
-                        <Gauge size={18} />
-                        <strong>{v.odometer.toLocaleString('ru-RU')}</strong>
-                        <span>км</span>
-                      </div>
-                      <div
-                        className={`maintenance ${v.serviceAt - v.odometer < 500 ? 'due' : ''}`}
-                      >
-                        <Wrench size={16} />
-                        <span>
-                          {v.serviceAt <= v.odometer
-                            ? 'ТО требуется сейчас'
-                            : `До ТО ${(v.serviceAt - v.odometer).toLocaleString('ru-RU')} км`}
-                        </span>
-                      </div>
-                      <p className="vehicle-next">
-                        Следующее ТО: {v.serviceAt.toLocaleString('ru-RU')} км
-                      </p>
-                      {role === 'dispatcher' && (
-                        <Button
-                          variant="outline"
-                          onClick={() => act({ type: 'service', id: v.id })}
-                        >
-                          Отметить ТО выполненным
-                        </Button>
-                      )}
-                    </section>
-                  ))}
-              </div>
-              <div className="info-note">
-                <Gauge size={20} />
-                <p>
-                  Завершите рейс в карточке заявки — его фактический пробег
-                  добавится к одометру нужного эвакуатора. Отметка ТО планирует
-                  следующее обслуживание через 10 000 км.
-                </p>
-              </div>
-            </>
-          )}
-          {page === 'finance' && (
-            <>
-              <div className="stats-grid finance-stats">
-                <Stat
-                  label="Выручка"
-                  value={money(totals.revenue)}
-                  sub="завершённые рейсы"
-                  icon={Wallet}
-                />
-                <Stat
-                  label="Расходы"
-                  value={money(totals.expenses)}
-                  sub="топливо и обслуживание"
-                  icon={ArrowDownLeft}
-                />
-                <Stat
-                  label="Партнёрам"
-                  value={money(totals.partners)}
-                  sub="демо-правило: 15% заказа"
-                  icon={Route}
-                />
-                <Stat
-                  label="Остаток"
-                  value={money(totals.balance)}
-                  sub="до зарплат и налогов"
-                  icon={Gauge}
-                />
-              </div>
-              <div className="finance-grid">
-                <section className="panel">
-                  <div className="panel-heading">
-                    <h2>Расходы смены</h2>
-                    <Button
-                      variant="outline"
-                      onClick={() => openModal('expense')}
-                      disabled={!state.shift}
-                    >
-                      <Plus /> Добавить
-                    </Button>
-                  </div>
-                  {state.expenses.map((e) => (
-                    <div className="finance-row" key={e.id}>
-                      <span>
-                        <span className="expense-icon">
-                          <ArrowDownLeft size={15} />
-                        </span>
-                        {e.title}
-                      </span>
-                      <strong>−{money(e.amount)}</strong>
-                    </div>
-                  ))}
-                </section>
-                <section className="panel report-panel">
-                  <div className="panel-heading">
-                    <h2>Отчёт диспетчера</h2>
-                    <ClipboardList size={19} />
-                  </div>
-                  <div className="report-row">
-                    <span>Завершено рейсов</span>
-                    <strong>{totals.done}</strong>
-                  </div>
-                  <div className="report-row">
-                    <span>Пройдено по заказам</span>
-                    <strong>{totals.km} км</strong>
-                  </div>
-                  <div className="report-row">
-                    <span>Наличные</span>
-                    <strong>
-                      {money(
-                        state.orders
-                          .filter(
-                            (o) => o.status === 'done' && o.payment === 'cash',
-                          )
-                          .reduce((a, o) => a + o.price, 0),
-                      )}
-                    </strong>
-                  </div>
-                  <div className="report-row">
-                    <span>Карта</span>
-                    <strong>
-                      {money(
-                        state.orders
-                          .filter(
-                            (o) => o.status === 'done' && o.payment === 'card',
-                          )
-                          .reduce((a, o) => a + o.price, 0),
-                      )}
-                    </strong>
-                  </div>
-                  <Button
-                    className="gold-button"
-                    onClick={() => {
-                      downloadReport(state);
-                      setNotice('CSV-отчёт подготовлен к скачиванию');
-                    }}
-                  >
-                    <Download /> Скачать отчёт CSV
-                  </Button>
-                  <p className="demo-note">
-                    Только вымышленные данные текущей демо-смены.
-                  </p>
-                </section>
-              </div>
-            </>
-          )}
-          {page === 'telegram' && (
-            <div className="telegram-layout">
-              <section className="panel telegram-panel">
-                <div className="telegram-header">
-                  <span>
-                    <Send size={25} />
-                  </span>
-                  <div>
-                    <h2>Эвакуация / Демо-чат</h2>
-                    <p>Журнал уведомлений · {state.events.length} событий</p>
-                  </div>
-                  <span className="simulation-badge">СИМУЛЯЦИЯ</span>
-                </div>
-                <div className="message-feed">
-                  {state.events.map((e) => (
-                    <article className="telegram-message" key={e.id}>
-                      <strong>#{e.topic}</strong>
-                      <p>{e.text}</p>
-                      <small>
-                        {e.time} <CircleCheck size={11} />
-                      </small>
-                    </article>
-                  ))}
-                </div>
-              </section>
-              <div className="telegram-explain">
-                <Send />
-                <h2>
-                  Операционные события
-                  <br />в нужной ветке.
-                </h2>
-                <p>
-                  Заявки, смены и обслуживание техники попадают в свои темы. В
-                  рабочем проекте этим занимаются серверные обработчики
-                  Telegram.
-                </p>
-                <p>
-                  Здесь показана локальная модель: сообщения никуда не
-                  отправляются. Создайте или завершите заказ, чтобы увидеть
-                  новое событие.
-                </p>
-                <Button
-                  variant="outline"
+              </label>
+            )}
+            {page === 'orders' && (
+              <div className="role-tools">
+                <button
+                  className="tech-button"
+                  onClick={() => go('maintenance')}
+                >
+                  Техника
+                </button>
+                <button
+                  className="driver-button"
                   onClick={() => {
-                    setPage('orders');
-                    setFilter('all');
+                    setPick('driver');
+                    logout();
                   }}
                 >
-                  Перейти к заявкам <ArrowRight />
-                </Button>
+                  Драйвер
+                </button>
+              </div>
+            )}
+            <span className="connection" title="Демо работает локально">
+              <Wifi size={15} />
+            </span>
+            <button
+              aria-label="Обновить данные"
+              onClick={() => {
+                setState(readSaved(localStorage.getItem(STORE)));
+                setNotice('Демо обновлено');
+              }}
+            >
+              <RefreshCw size={15} />
+            </button>
+            <span className="tool-decoration">
+              <Volume2 size={15} />
+            </span>
+            <span className="moon-decoration">
+              <Moon size={16} />
+            </span>
+            <button
+              className="desktop-only"
+              aria-label="Автопарк"
+              onClick={() => go('fleet')}
+            >
+              <SquareParking size={16} />
+            </button>
+            <button
+              className="desktop-only"
+              aria-label="Пробег техники"
+              onClick={() => go('mileage')}
+            >
+              <Truck size={17} />
+            </button>
+            <button className="owner-pill" onClick={() => setModal('help')}>
+              <Grid2X2 size={12} />
+              Владелец · День
+            </button>
+            <button aria-label="Выйти из аккаунта" onClick={logout}>
+              <LogOut size={15} />
+            </button>
+            <time className="desktop-only">14:32</time>
+          </div>
+        </header>
+      ) : (
+        <header className="driver-header">
+          <div className="driver-top">
+            <Brand driver />
+            <button
+              className={`line-button ${onLine ? 'on' : ''}`}
+              onClick={() => setOnLine(!onLine)}
+            >
+              <LogOut size={13} />
+              {onLine ? 'Уйти с линии' : 'На линию'}
+            </button>
+            <button
+              className="notification-toggle"
+              aria-label="Уведомления"
+              onClick={() => go('telegram')}
+            >
+              <Bell size={17} />
+            </button>
+            <button
+              aria-label="Обновить данные"
+              onClick={() => setNotice('Заявки обновлены')}
+            >
+              <RefreshCw size={16} />
+            </button>
+            <button className="driver-menu" onClick={() => go('more')}>
+              <ChevronDown size={15} />
+              Меню
+            </button>
+          </div>
+          <button className="driver-profile" onClick={() => setModal('help')}>
+            <span>
+              <UserRound size={23} />
+            </span>
+            <div>
+              <b>Водитель 01</b>
+              <small>День · 07.09.26 · до отчёта</small>
+            </div>
+            <ChevronDown size={20} />
+          </button>
+        </header>
+      )}
+      {error && !order && !modal && (
+        <div className="page-error" role="alert">
+          {error}
+          <button aria-label="Закрыть ошибку" onClick={() => setError('')}>
+            <X size={16} />
+          </button>
+        </div>
+      )}
+      {page === 'orders' && (
+        <main className="orders-layout">
+          {role === 'dispatcher' && (
+            <aside className="nearest">
+              <h3>
+                <Bell size={14} />
+                БЛИЖАЙШИЕ
+              </h3>
+              <p>
+                Запланированные выезды и звонки по согласованию появятся здесь
+              </p>
+            </aside>
+          )}
+          <section className="orders-column">
+            {role === 'dispatcher' ? (
+              <div className="shift-pill">Владелец · День · 2026-09-07</div>
+            ) : (
+              <>
+                <div className="driver-notifications">
+                  <div>
+                    <b>
+                      {notifications
+                        ? 'Демо-уведомления включены'
+                        : 'Браузерные уведомления выключены'}
+                    </b>
+                    <p>
+                      {notifications
+                        ? 'События отображаются внутри демонстрации'
+                        : 'Новые заявки отображаются в этом кабинете'}
+                    </p>
+                  </div>
+                  <button
+                    className="gold-button"
+                    onClick={() => {
+                      setNotifications(!notifications);
+                      setNotice(
+                        notifications
+                          ? 'Демо-уведомления выключены'
+                          : 'Демо-уведомления включены',
+                      );
+                    }}
+                  >
+                    {notifications ? 'Выключить' : 'Разрешить'}
+                  </button>
+                </div>
+                <div className="driver-push-note">
+                  Push · Android APK · iPhone — Safari → «На экран Домой»
+                </div>
+              </>
+            )}
+            <div className="status-filters" aria-label="Статус заявок">
+              {filters.map(([id, label]) => (
+                <button
+                  key={id}
+                  className={filter === id ? 'active' : ''}
+                  aria-pressed={filter === id}
+                  onClick={() => setFilter(id)}
+                >
+                  {label}
+                  <span>{visible.filter((o) => matches(o, id)).length}</span>
+                </button>
+              ))}
+            </div>
+            {filtered.length === 0 ? (
+              <div className="empty-state">
+                <ClipboardList size={25} />
+                <strong>
+                  {query ? 'Ничего не найдено' : 'Заявок в этом статусе нет'}
+                </strong>
+                <p>
+                  {query
+                    ? 'Попробуйте другой номер, автомобиль или водителя.'
+                    : 'Переключитесь на активные заявки или создайте новую.'}
+                </p>
+                <button
+                  onClick={() => {
+                    setFilter('active');
+                    setQuery('');
+                  }}
+                >
+                  Показать активные
+                </button>
+              </div>
+            ) : (
+              filtered.map((o) =>
+                role === 'driver' ? (
+                  <article className="driver-order" key={o.id}>
+                    <div className="driver-order-top">
+                      <span>{stage(o).toUpperCase()}</span>
+                      <small>#{o.id}</small>
+                    </div>
+                    <h3>📌 Новый заказ 📌</h3>
+                    <p>
+                      Откуда: {o.from}
+                      <br />
+                      Куда: {o.to}
+                    </p>
+                    <small>
+                      {o.car} · {o.client}
+                    </small>
+                    <p className="assigned-driver">
+                      Водитель: <b>{o.driver}</b>
+                    </p>
+                    <footer>
+                      <time>7 сент. {o.time}</time>
+                      <button onClick={() => openOrder(o)}>
+                        ПОДРОБНЕЕ <ChevronRight size={13} />
+                      </button>
+                    </footer>
+                  </article>
+                ) : (
+                  <article className="dispatch-order" key={o.id}>
+                    <div className="order-card-heading">
+                      <h3>📌 Новый заказ 📌</h3>
+                      {isActive(o) && (
+                        <button
+                          aria-label={`Отменить заявку ${o.id}`}
+                          onClick={() => openOrder(o)}
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      )}
+                    </div>
+                    <small className="order-time">
+                      #{o.id} · 7 сент. {o.time}
+                    </small>
+                    <span className="urgent-label">
+                      {o.partner ? 'ДОГОВОРНОЙ' : 'СРОЧНЫЙ'}
+                    </span>
+                    <OrderDocument order={o} />
+                    <div className="order-bottom">
+                      <span>
+                        {o.driver || 'Водитель не назначен'} ·{' '}
+                        {statusLabels[o.status]}
+                      </span>
+                      <Button
+                        className="gold-button"
+                        onClick={() => openOrder(o)}
+                      >
+                        Открыть заявку <ChevronRight size={14} />
+                      </Button>
+                    </div>
+                  </article>
+                ),
+              )
+            )}
+          </section>
+        </main>
+      )}
+      {page === 'create' && (
+        <main className="create-wrap">
+          <form className="create-form" onSubmit={createOrder}>
+            <h1>НОВАЯ ЗАЯВКА</h1>
+            <p>Телефон, источник и тип</p>
+            <div className="create-fields">
+              <label>
+                ТЕЛЕФОН
+                <Input disabled placeholder="Не используется в демо" />
+              </label>
+              <label>
+                ИСТОЧНИК ЗАЯВКИ
+                <Choose
+                  value={source}
+                  onChange={setSource}
+                  label="Источник заявки"
+                  options={[
+                    { value: '', label: '— выберите источник —' },
+                    { value: 'call', label: 'Входящий звонок' },
+                    { value: 'site', label: 'Сайт' },
+                    { value: 'partner', label: 'Партнёр' },
+                  ]}
+                />
+              </label>
+              <label>
+                ТИП ЗАКАЗА
+                <Choose
+                  value={kind}
+                  onChange={setKind}
+                  label="Тип заказа"
+                  options={[
+                    { value: 'urgent', label: 'Срочный' },
+                    { value: 'partner', label: 'Договорной' },
+                  ]}
+                />
+              </label>
+            </div>
+            <div className="create-fields">
+              <label>
+                ИМЯ КЛИЕНТА
+                <Input
+                  name="client"
+                  defaultValue="Клиент Demo"
+                  maxLength={100}
+                />
+              </label>
+              <label>
+                АВТОМОБИЛЬ
+                <Input
+                  name="car"
+                  required
+                  placeholder="Например, седан · не заводится"
+                  maxLength={150}
+                />
+              </label>
+              <label>
+                ОТКУДА
+                <Input
+                  name="from"
+                  required
+                  placeholder="Учебная точка А"
+                  maxLength={150}
+                />
+              </label>
+              <label>
+                КУДА
+                <Input
+                  name="to"
+                  required
+                  placeholder="Учебная точка Б"
+                  maxLength={150}
+                />
+              </label>
+              <div className="form-pair">
+                <label>
+                  СТОИМОСТЬ, ₽
+                  <Input
+                    name="price"
+                    type="number"
+                    required
+                    min={1}
+                    max={1000000}
+                    defaultValue={4500}
+                  />
+                </label>
+                <label>
+                  ПРОБЕГ, КМ
+                  <Input
+                    name="km"
+                    type="number"
+                    required
+                    min={0}
+                    max={10000}
+                    defaultValue={18}
+                  />
+                </label>
+              </div>
+              <fieldset className="payment-choice">
+                <legend>ОПЛАТА</legend>
+                <label>
+                  <input
+                    type="radio"
+                    name="payment"
+                    value="card"
+                    defaultChecked
+                  />
+                  Перевод
+                </label>
+                <label>
+                  <input type="radio" name="payment" value="cash" />
+                  Наличные
+                </label>
+              </fieldset>
+            </div>
+            {error && (
+              <p role="alert" className="error-text">
+                {error}
+              </p>
+            )}
+            <Button className="gold-button" type="submit">
+              <CirclePlus />
+              Создать заявку
+            </Button>
+          </form>
+        </main>
+      )}
+      {['finance', 'week', 'details', 'cash', 'dashboard'].includes(page) && (
+        <main className="report-page">
+          <div className="page-heading">
+            <div>
+              <h1>
+                {page === 'finance'
+                  ? 'ОТЧЁТ ДИСПЕТЧЕРА'
+                  : desktopLabel(page).toUpperCase()}
+              </h1>
+              <p>Касса по заявкам и расходам текущей демонстрационной смены</p>
+            </div>
+            <div className="heading-actions">
+              <Button
+                variant="outline"
+                className="danger-button"
+                onClick={() => act({ type: 'shift' })}
+              >
+                {state.shift ? 'Завершить смену' : 'Открыть смену'}
+              </Button>
+              <Button variant="outline" onClick={exportReport}>
+                <Download />
+                Скачать CSV
+              </Button>
+            </div>
+          </div>
+          <div className="report-frame">
+            <div className="active-shift">
+              <div>
+                <small>
+                  {state.shift ? 'АКТИВНАЯ СМЕНА' : 'СМЕНА ЗАКРЫТА'}
+                </small>
+                <h2>День · 2026-09-07</h2>
+                <p>Диспетчер: Demo · 07:00–19:00</p>
+              </div>
+              <span>
+                {state.shift ? 'В РАБОТЕ' : 'ЗАВЕРШЕНА'}{' '}
+                <i>
+                  заявок {state.orders.length} · открыто {totals.active}
+                </i>
+              </span>
+            </div>
+            <div className="report-columns">
+              <div>
+                <Panel title="Заказы · статус текущей смены">
+                  <small className="muted-label">
+                    ПРИНЯТЫЕ ЗАКАЗЫ ЗА ТЕКУЩУЮ СМЕНУ
+                  </small>
+                  <div className="report-stats">
+                    {[
+                      [
+                        'ВЫПОЛНЕНО ТЕХНОПРАЙМ',
+                        state.orders.filter(
+                          (o) => o.status === 'done' && !o.partner,
+                        ).length,
+                        'green',
+                      ],
+                      [
+                        'ВЫПОЛНЕНО · ПАРТНЁРЫ',
+                        state.orders.filter(
+                          (o) => o.status === 'done' && o.partner,
+                        ).length,
+                        'green',
+                      ],
+                      ['ЗАПЛАНИРОВАННЫЕ', 0, 'gold'],
+                      ['В РАБОТЕ · ТЕХНОПРАЙМ', totals.active, 'gold'],
+                      [
+                        'ОТМЕНЁННЫЕ',
+                        state.orders.filter((o) => o.status === 'cancelled')
+                          .length,
+                        'red',
+                      ],
+                      ['СОГЛАСОВАНИЕ', 0, 'gold'],
+                    ].map(([label, value, color]) => (
+                      <div key={label} className={String(color)}>
+                        <small>{label}</small>
+                        <b>{value}</b>
+                        <i />
+                      </div>
+                    ))}
+                  </div>
+                </Panel>
+                <Panel title="Деньги смены">
+                  <div className="money-grid">
+                    <div>
+                      <small>ВЫРУЧКА</small>
+                      <b>{money(totals.revenue)}</b>
+                    </div>
+                    <div>
+                      <small>РАСХОДЫ</small>
+                      <b>{money(totals.expenses)}</b>
+                    </div>
+                    <div>
+                      <small>ПАРТНЁРСКИЕ</small>
+                      <b>{money(totals.partners)}</b>
+                    </div>
+                  </div>
+                  <div className="report-total">
+                    <span>Остаток до зарплат и налогов</span>
+                    <strong>{money(totals.balance)}</strong>
+                  </div>
+                  <div className="report-table">
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>ЗАЯВКА</th>
+                          <th>ОПЛАТА</th>
+                          <th>ПРОБЕГ</th>
+                          <th>СУММА</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {state.orders
+                          .filter((o) => o.status === 'done')
+                          .map((o) => (
+                            <tr key={o.id}>
+                              <td>
+                                <button onClick={() => openOrder(o)}>
+                                  #{o.id}
+                                </button>
+                              </td>
+                              <td>
+                                {o.payment === 'cash' ? 'Наличные' : 'Перевод'}
+                              </td>
+                              <td>{o.km} км</td>
+                              <td>{money(o.price)}</td>
+                            </tr>
+                          ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </Panel>
+              </div>
+              <div>
+                <Panel title="Водители">
+                  {state.vehicles.map((v) => (
+                    <div className="report-driver" key={v.id}>
+                      <h4>{v.driver}</h4>
+                      <p>{v.name}</p>
+                      <div>
+                        <span>
+                          ЗАКАЗЫ
+                          <b>
+                            {
+                              state.orders.filter((o) => o.driver === v.driver)
+                                .length
+                            }
+                          </b>
+                        </span>
+                        <span>
+                          СДЕЛКИ
+                          <b>
+                            {money(
+                              state.orders
+                                .filter(
+                                  (o) =>
+                                    o.driver === v.driver &&
+                                    o.status === 'done',
+                                )
+                                .reduce((sum, o) => sum + o.price, 0),
+                            )}
+                          </b>
+                        </span>
+                        <span>
+                          КМ · А→Б
+                          <b>
+                            {state.orders
+                              .filter(
+                                (o) =>
+                                  o.driver === v.driver && o.status === 'done',
+                              )
+                              .reduce((sum, o) => sum + o.km, 0)}{' '}
+                            км
+                          </b>
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </Panel>
+                <Panel title="Диспетчеры">
+                  <h4>Диспетчер Demo</h4>
+                  <p className="muted">
+                    Одна тестовая смена. Все показатели рассчитаны из заявок.
+                  </p>
+                </Panel>
               </div>
             </div>
-          )}
+          </div>
+        </main>
+      )}
+      {['fleet', 'maintenance', 'mileage', 'line'].includes(page) && (
+        <main className="fleet-page">
+          <div className="fleet-intro">
+            <span className="fleet-icon">
+              {page === 'maintenance' ? <Wrench /> : <Truck />}
+            </span>
+            <div>
+              <h1>
+                {page === 'maintenance'
+                  ? 'Техническое обслуживание'
+                  : page === 'mileage'
+                    ? 'Пробег техники'
+                    : page === 'line'
+                      ? 'Техника на линии'
+                      : 'Автопарк'}
+              </h1>
+              <p>Состояние автопарка и история по каждой машине</p>
+            </div>
+            <div className="fleet-counts">
+              <div>
+                <small>ВСЕГО МАШИН</small>
+                <b>{state.vehicles.length}</b>
+              </div>
+              <div>
+                <small>БЛИЖАЙШЕЕ Т.О.</small>
+                <b>
+                  {Math.min(
+                    ...state.vehicles.map((v) => v.serviceAt - v.odometer),
+                  ).toLocaleString('ru')}{' '}
+                  км
+                </b>
+              </div>
+            </div>
+          </div>
+          <div className="fleet-caption">
+            <h2>Машины</h2>
+            <span>Пробег обновляется при завершении рейса</span>
+          </div>
+          {state.vehicles
+            .filter((v) => role === 'dispatcher' || v.driver === driverNames[0])
+            .map((v) => (
+              <article
+                key={v.id}
+                className={`vehicle-card ${v.serviceAt - v.odometer < 1000 ? 'due' : ''}`}
+              >
+                <div>
+                  <h3>
+                    {v.name} · ДЕМО {v.id}
+                  </h3>
+                  <p>{v.driver}</p>
+                  <span className="vehicle-status">
+                    {v.serviceAt - v.odometer < 1000
+                      ? 'СКОРО Т.О.'
+                      : 'ИСПРАВНА'}
+                  </span>
+                </div>
+                <div className="vehicle-numbers">
+                  <span>
+                    ПРОБЕГ<b>{v.odometer.toLocaleString('ru')} км</b>
+                  </span>
+                  <span>
+                    ДО Т.О.
+                    <b>{(v.serviceAt - v.odometer).toLocaleString('ru')} км</b>
+                  </span>
+                </div>
+                <Button
+                  variant="outline"
+                  onClick={() => act({ type: 'service', id: v.id })}
+                >
+                  <Wrench size={15} />
+                  Отметить Т.О.
+                </Button>
+              </article>
+            ))}
+        </main>
+      )}
+      {page === 'expenses' && (
+        <main className="module-page">
+          <div className="page-heading">
+            <h1>РАСХОДЫ</h1>
+            <Button
+              className="gold-button"
+              onClick={() => {
+                setError('');
+                setModal('expense');
+              }}
+            >
+              <CirclePlus />
+              Добавить расход
+            </Button>
+          </div>
+          <Panel title="Расходы текущей смены">
+            {state.expenses.map((e) => (
+              <div className="list-row" key={e.id}>
+                <span>
+                  <Fuel size={18} />
+                  {e.title}
+                </span>
+                <b>{money(e.amount)}</b>
+              </div>
+            ))}
+            <div className="report-total">
+              Итого<strong>{money(totals.expenses)}</strong>
+            </div>
+          </Panel>
+        </main>
+      )}
+      {page === 'partners' && (
+        <main className="module-page">
+          <div className="page-heading">
+            <h1>ПАРТНЁРСКИЕ ЗАКАЗЫ</h1>
+          </div>
+          <Panel title="Договорные заявки">
+            {state.orders
+              .filter((o) => o.partner)
+              .map((o) => (
+                <button
+                  className="list-row row-button"
+                  key={o.id}
+                  onClick={() => openOrder(o)}
+                >
+                  <span>
+                    #{o.id} · {o.car}
+                    <small>{stage(o)}</small>
+                  </span>
+                  <b>
+                    {money(o.price)} <ChevronRight size={15} />
+                  </b>
+                </button>
+              ))}
+            <div className="report-total">
+              Партнёрские отчисления · 15% завершённых
+              <strong>{money(totals.partners)}</strong>
+            </div>
+          </Panel>
+        </main>
+      )}
+      {page === 'telegram' && (
+        <main className="module-page telegram-page">
+          <div className="page-heading">
+            <div>
+              <h1>TELEGRAM · СОБЫТИЯ СМЕНЫ</h1>
+              <p>Локальная имитация отправки в темы рабочего чата</p>
+            </div>
+            <Send />
+          </div>
+          <div className="telegram-layout">
+            <aside>
+              <b>Технопрайм · Демо</b>
+              {(['Заявки', 'Смена', 'Автопарк'] as const).map((t) => (
+                <div key={t}>
+                  # {t}
+                  <span>
+                    {state.events.filter((e) => e.topic === t).length}
+                  </span>
+                </div>
+              ))}
+            </aside>
+            <div className="event-feed">
+              {state.events.map((e) => (
+                <article key={e.id}>
+                  <small># {e.topic}</small>
+                  <b>Технопрайм · CRM</b>
+                  <p>{e.text}</p>
+                  <time>{e.time} ✓✓</time>
+                </article>
+              ))}
+              <p className="muted">
+                Создайте заявку или завершите рейс — здесь появится новое
+                событие.
+              </p>
+            </div>
+          </div>
+        </main>
+      )}
+      {page === 'price' && (
+        <main className="module-page">
+          <div className="page-heading">
+            <div>
+              <h1>ПРАЙС</h1>
+              <p>Пример тарифов для демонстрационной смены</p>
+            </div>
+          </div>
+          <Panel title="Тестовые тарифы">
+            {[
+              ['Легковой автомобиль', 'от 3 500 ₽'],
+              ['Кроссовер', 'от 4 500 ₽'],
+              ['Минивэн', 'от 5 500 ₽'],
+              ['Заблокированное колесо', '+ 500 ₽'],
+            ].map(([n, p]) => (
+              <div className="list-row" key={n}>
+                <span>{n}</span>
+                <b>{p}</b>
+              </div>
+            ))}
+          </Panel>
+        </main>
+      )}
+      {page === 'schedule' && (
+        <main className="module-page">
+          <div className="page-heading">
+            <h1>ГРАФИК · 07.09.2026</h1>
+          </div>
+          <Panel title="Дневная смена · 07:00–19:00">
+            <div className="list-row">
+              <span>Диспетчер Demo</span>
+              <b>{state.shift ? 'На смене' : 'Смена закрыта'}</b>
+            </div>
+            {driverNames.map((d) => (
+              <div className="list-row" key={d}>
+                <span>{d}</span>
+                <b>{state.vehicles.find((v) => v.driver === d)?.name}</b>
+              </div>
+            ))}
+          </Panel>
+        </main>
+      )}
+      {page === 'calls' && (
+        <main className="module-page">
+          <div className="page-heading">
+            <h1>ЗВОНКИ</h1>
+          </div>
+          <Panel title="Демонстрационный журнал">
+            {state.orders.slice(0, 3).map((o) => (
+              <button
+                className="list-row row-button"
+                onClick={() => openOrder(o)}
+                key={o.id}
+              >
+                <span>
+                  <Phone size={17} />
+                  {o.client}
+                  <small>Входящий · {o.time} · номер скрыт</small>
+                </span>
+                <b>
+                  Заявка #{o.id}
+                  <ChevronRight size={15} />
+                </b>
+              </button>
+            ))}
+          </Panel>
+        </main>
+      )}
+      {page === 'more' && (
+        <main className="module-page">
+          <div className="page-heading">
+            <h1>МЕНЮ</h1>
+          </div>
+          <div className="more-grid">
+            {nav
+              .filter(
+                (n) =>
+                  role === 'dispatcher' || ['price', 'telegram'].includes(n[0]),
+              )
+              .map(([id, label, Icon]) => (
+                <button key={id} onClick={() => go(id)}>
+                  <Icon size={19} />
+                  {label}
+                  <ChevronRight size={15} />
+                </button>
+              ))}
+            <button onClick={() => setModal('help')}>
+              <CircleHelp size={19} />О демоверсии
+              <ChevronRight size={15} />
+            </button>
+            <button onClick={() => setModal('reset')}>
+              <RotateCcw size={19} />
+              Сбросить демо
+            </button>
+            <button onClick={logout}>
+              <LogOut size={19} />
+              Сменить роль
+            </button>
+          </div>
+        </main>
+      )}
+      <nav className="mobile-nav" aria-label="Мобильная навигация">
+        {(role === 'dispatcher'
+          ? [
+              ['orders', 'Заявки', ClipboardList],
+              ['create', 'Новая', CirclePlus],
+              ['calls', 'Звонки', Phone],
+              ['fleet', 'Парк', SquareParking],
+              ['finance', 'Отчёт', FileSpreadsheet],
+              ['partners', 'Партнёрка', Handshake],
+              ['more', 'Ещё', MoreHorizontal],
+            ]
+          : [
+              ['orders', 'Заявки', ClipboardList],
+              ['schedule', 'График', CalendarDays],
+              ['expenses', 'Топливо', Fuel],
+              ['cash', 'Сдать кассу', Banknote],
+              ['fleet', 'Парк', Truck],
+              ['price', 'Прайс', Tag],
+              ['more', 'Меню', Archive],
+            ]
+        ).map(([id, label, Icon]) => {
+          const NavIcon = Icon as typeof Truck;
+          return (
+            <button
+              key={String(id)}
+              className={page === id ? 'active' : ''}
+              onClick={() => go(id as Page)}
+            >
+              <NavIcon size={19} />
+              <span>{String(label)}</span>
+            </button>
+          );
+        })}
+      </nav>
+      <div className="desktop-demo-footer">
+        <span>Демонстрация · вымышленные данные</span>
+        <button onClick={() => setModal('reset')}>Сбросить демо</button>
+        <a
+          href="https://github.com/MELUWIs/evacuation-crm-demo"
+          target="_blank"
+          rel="noreferrer"
+        >
+          MELUWI · исходный код ↗
+        </a>
+      </div>
+      {notice && (
+        <div className="notice" role="status">
+          <span>{notice}</span>
+          <button
+            aria-label="Закрыть уведомление"
+            onClick={() => setNotice('')}
+          >
+            <X size={15} />
+          </button>
         </div>
-        <footer className="workspace-footer">
-          <span>MELUWI / EVACUATION CRM</span>
-          <span>Демо сохраняется на этом устройстве</span>
-        </footer>
-      </main>
+      )}
       <Dialog
-        open={Boolean(order)}
+        open={!!order}
         onOpenChange={(open) => {
           if (!open) {
             setSelected(null);
@@ -964,137 +1435,103 @@ export default function Home() {
           }
         }}
       >
-        <DialogContent className="crm-dialog">
-          <DialogTitle className="detail-title">
-            Заявка #{order?.id}
-          </DialogTitle>
-          <DialogDescription>
-            Демонстрационный заказ · {order?.client}
+        <DialogContent className="order-dialog" showCloseButton={false}>
+          <div className="dialog-top">
+            <DialogTitle>Заявка #{order?.id}</DialogTitle>
+            <DialogClose aria-label="Закрыть заявку">
+              <X size={19} />
+            </DialogClose>
+          </div>
+          <DialogDescription className="sr-only">
+            Маршрут, водитель и управление статусом заявки
           </DialogDescription>
           {order && (
             <>
-              <div className="detail-car">
-                <div>
-                  <Truck />
-                  <strong>{order.car}</strong>
-                </div>
-                <Badge status={order.status} />
+              <div className="order-dialog-scroll">
+                <OrderDocument order={order} />
               </div>
-              <div className="detail-route">
-                <div>
-                  <i />
-                  <span>
-                    ОТКУДА<strong>{order.from}</strong>
-                  </span>
-                </div>
-                <div>
-                  <i />
-                  <span>
-                    КУДА<strong>{order.to}</strong>
-                  </span>
-                </div>
-              </div>
-              <div className="detail-facts">
-                <div>
-                  <span>Стоимость</span>
-                  <strong>{money(order.price)}</strong>
-                </div>
-                <div>
-                  <span>Оплата</span>
-                  <strong>
-                    {order.payment === 'cash' ? 'Наличные' : 'Карта'}
-                  </strong>
-                </div>
-                <div>
-                  <span>Пробег</span>
-                  <strong>{order.km} км</strong>
-                </div>
-                <div>
-                  <span>Источник</span>
-                  <strong>
-                    {order.partner ? 'Демо-партнёр' : 'Прямая заявка'}
-                  </strong>
-                </div>
-              </div>
-              {!['done', 'cancelled'].includes(order.status) && (
-                <>
-                  {role === 'dispatcher' && order.status !== 'enroute' && (
-                    <div className="assign-row">
-                      <Choose
-                        value={driver}
-                        onChange={setDriver}
-                        label="Назначить водителя"
-                        options={driverNames.map((d) => ({
-                          value: d,
-                          label: d,
-                        }))}
-                      />
-                      <Button
-                        variant="outline"
-                        onClick={() =>
-                          act({ type: 'assign', id: order.id, driver })
-                        }
-                      >
-                        Назначить
-                      </Button>
-                    </div>
-                  )}
-                  {order.status === 'enroute' && (
-                    <label className="field-label">
-                      Фактический пробег, км
-                      <Input
-                        type="number"
-                        min="1"
-                        max="2000"
-                        value={distance}
-                        onChange={(e) => setDistance(e.target.value)}
-                      />
-                    </label>
-                  )}
-                  {error && (
-                    <p className="error-text" role="alert">
-                      {error}
-                    </p>
-                  )}
-                  <div className="detail-actions">
-                    {['assigned', 'enroute'].includes(order.status) && (
+              <div className="order-controls">
+                {error && (
+                  <p role="alert" className="error-text">
+                    {error}
+                  </p>
+                )}
+                {isActive(order) ? (
+                  <>
+                    {role === 'dispatcher' && (
+                      <div className="assign-row">
+                        <Choose
+                          value={driver}
+                          onChange={setDriver}
+                          label="Водитель заявки"
+                          options={driverNames.map((d) => ({
+                            value: d,
+                            label: d,
+                          }))}
+                        />
+                        <Button
+                          variant="outline"
+                          onClick={() =>
+                            act({ type: 'assign', id: order.id, driver })
+                          }
+                        >
+                          Назначить
+                        </Button>
+                      </div>
+                    )}
+                    {order.status === 'enroute' && (
+                      <label className="distance-label">
+                        Фактический пробег, км
+                        <Input
+                          aria-label="Фактический пробег"
+                          type="number"
+                          min={0}
+                          max={10000}
+                          value={distance}
+                          onChange={(e) => setDistance(e.target.value)}
+                        />
+                      </label>
+                    )}
+                    <div className="order-control-buttons">
+                      {role === 'dispatcher' && (
+                        <Button
+                          variant="outline"
+                          className="danger-button"
+                          onClick={() => act({ type: 'cancel', id: order.id })}
+                        >
+                          Отменить заявку
+                        </Button>
+                      )}
                       <Button
                         className="gold-button"
+                        disabled={order.status === 'new'}
                         onClick={() =>
                           act({
                             type: 'advance',
                             id: order.id,
-                            km: Number(distance),
+                            km:
+                              order.status === 'enroute'
+                                ? Number(distance)
+                                : undefined,
                           })
                         }
                       >
-                        {order.status === 'assigned' ? (
-                          <>
-                            <Route /> Начать рейс
-                          </>
-                        ) : (
-                          <>
-                            <CircleCheck /> Завершить рейс
-                          </>
-                        )}
+                        {order.status === 'enroute'
+                          ? 'Завершить рейс'
+                          : order.status === 'new'
+                            ? 'Назначьте водителя'
+                            : 'Начать рейс'}
                       </Button>
-                    )}
-                    {role === 'dispatcher' && (
-                      <Button
-                        variant="ghost"
-                        onClick={() => act({ type: 'cancel', id: order.id })}
-                      >
-                        Отменить заявку
-                      </Button>
-                    )}
-                  </div>
-                </>
-              )}
-              {order.status === 'done' && (
-                <div className="success-note">
-                  <CircleCheck /> Рейс завершён. Пробег и выручка учтены.
-                </div>
-              )}
+                    </div>
+                  </>
+                ) : (
+                  <p className="closed-order">
+                    {order.status === 'done'
+                      ? 'Заказ завершён. Пробег учтён, выручка добавлена в отчёт.'
+                      : 'Заявка отменена.'}
+                  </p>
+                )}
+              </div>
             </>
           )}
         </DialogContent>
@@ -1108,344 +1545,109 @@ export default function Home() {
           }
         }}
       >
-        <DialogContent className="crm-dialog">
+        <DialogContent className="utility-dialog">
           <DialogTitle>
-            {modal === 'create'
-              ? 'Новая заявка'
-              : modal === 'expense'
-                ? 'Добавить расход'
-                : modal === 'reset'
-                  ? 'Начать демо заново?'
-                  : 'Попробуйте полный рабочий цикл'}
+            {modal === 'expense'
+              ? 'Добавить расход'
+              : modal === 'reset'
+                ? 'Сбросить демоверсию?'
+                : 'Технопрайм · демонстрация'}
           </DialogTitle>
           <DialogDescription>
-            {modal === 'reset'
-              ? 'Ваши локальные изменения будут заменены исходными демоданными.'
-              : modal === 'help'
-                ? 'Все действия происходят в этом браузере. Внешние сервисы не подключены.'
-                : 'Заполняйте только вымышленными данными.'}
+            {modal === 'expense'
+              ? 'Расход попадёт в отчёт текущей смены.'
+              : modal === 'reset'
+                ? 'Тестовая смена вернётся к начальному состоянию.'
+                : 'Интерфейс диспетчерской и кабинета водителя на вымышленных данных.'}
           </DialogDescription>
-          {modal === 'create' && (
-            <CreateForm
-              onCreate={(order) => {
-                if (act({ type: 'create', order })) {
-                  setModal(null);
-                  setPage('orders');
-                  setFilter('all');
-                  setQuery('');
-                }
-              }}
-            />
-          )}
           {modal === 'expense' && (
             <form
               onSubmit={(e) => {
                 e.preventDefault();
-                const data = new FormData(e.currentTarget);
+                const d = new FormData(e.currentTarget);
                 if (
                   act({
                     type: 'expense',
-                    title: String(data.get('title')),
-                    amount: Number(data.get('amount')),
+                    title: String(d.get('title')),
+                    amount: Number(d.get('amount')),
                   })
                 )
                   setModal(null);
               }}
             >
-              <label className="field-label">
-                Название
+              <label>
+                Описание
                 <Input
                   name="title"
                   required
-                  maxLength={100}
-                  placeholder="Например: топливо · демо"
+                  maxLength={150}
+                  placeholder="Топливо · эвакуатор 01"
                 />
               </label>
-              <label className="field-label">
+              <label>
                 Сумма, ₽
                 <Input
                   name="amount"
                   type="number"
-                  min="1"
-                  max="1000000"
+                  min={1}
+                  max={1000000}
                   required
                 />
               </label>
-              <Button className="gold-button form-submit" type="submit">
-                Сохранить расход
+              {error && (
+                <p role="alert" className="error-text">
+                  {error}
+                </p>
+              )}
+              <Button type="submit" className="gold-button">
+                Добавить расход
               </Button>
             </form>
           )}
           {modal === 'reset' && (
-            <div className="detail-actions">
+            <Button
+              className="gold-button"
+              onClick={() => {
+                act({ type: 'reset' });
+                setModal(null);
+                setFilter('active');
+                go('orders');
+              }}
+            >
+              Восстановить демоданные
+            </Button>
+          )}
+          {modal === 'help' && (
+            <div className="help-content">
+              <p>
+                В демо можно создать заявку, назначить водителя, провести рейс,
+                учесть пробег и посмотреть отчёт.
+              </p>
+              <p>
+                Сценарии работают локально в браузере. Отправка в Telegram
+                имитируется; реальные звонки, рабочая база и APK не подключены.
+              </p>
+              <code>Тестовый пароль: meluwi-demo</code>
               <Button
                 className="gold-button"
                 onClick={() => {
-                  act({ type: 'reset' });
                   setModal(null);
-                  setSelected(null);
-                  setFilter('all');
-                  setQuery('');
+                  logout();
+                  setPick(role === 'dispatcher' ? 'driver' : 'dispatcher');
                 }}
               >
-                Сбросить демо
+                Сменить роль
               </Button>
-              <DialogClose render={<Button variant="outline" />}>
-                Оставить как есть
-              </DialogClose>
+              <button
+                className="password-hint"
+                onClick={() => setModal('reset')}
+              >
+                Сбросить демоданные
+              </button>
             </div>
-          )}
-          {modal === 'help' && (
-            <ol className="help-steps">
-              <li>
-                <b>01</b>
-                <span>
-                  Откройте «Новую заявку». Добавьте вымышленный маршрут и
-                  стоимость.
-                </span>
-              </li>
-              <li>
-                <b>02</b>
-                <span>Откройте карточку и назначьте Водителя 01.</span>
-              </li>
-              <li>
-                <b>03</b>
-                <span>
-                  Начните рейс и завершите его с фактическим пробегом. Можно
-                  сменить роль на водителя.
-                </span>
-              </li>
-              <li>
-                <b>04</b>
-                <span>
-                  Проверьте автопарк, выручку и Telegram-журнал. Скачайте отчёт.
-                </span>
-              </li>
-            </ol>
-          )}
-          {error && (
-            <p className="error-text" role="alert">
-              {error}
-            </p>
           )}
         </DialogContent>
       </Dialog>
-      {notice && (
-        <div className="toast" role="status">
-          <CircleCheck size={19} />
-          <span>{notice}</span>
-        </div>
-      )}
-    </SidebarProvider>
-  );
-}
-function Stat({
-  label,
-  value,
-  sub,
-  icon: Icon,
-}: {
-  label: string;
-  value: string;
-  sub: string;
-  icon: typeof Wallet;
-}) {
-  return (
-    <section className="stat">
-      <div>
-        <span>{label}</span>
-        <Icon size={17} />
-      </div>
-      <strong>{value}</strong>
-      <small>{sub}</small>
-    </section>
-  );
-}
-function Empty({ text }: { text: string }) {
-  return (
-    <div className="empty">
-      <CircleCheck />
-      <p>{text}</p>
     </div>
   );
-}
-function OrderCard({ order: o, onOpen }: { order: Order; onOpen: () => void }) {
-  return (
-    <button className="order-card" onClick={onOpen}>
-      <div className="order-main">
-        <div className="order-topline">
-          <span className="order-id">#{o.id}</span>
-          <Badge status={o.status} />
-          <span className="order-time">{o.time}</span>
-        </div>
-        <h3>{o.car}</h3>
-        <div className="order-route">
-          <MapPin size={13} />
-          <span>{o.from}</span>
-          <ArrowRight size={12} />
-          <span>{o.to}</span>
-        </div>
-        <div className="order-bottom">
-          <span>
-            <Truck size={13} />
-            {o.driver || 'Водитель не назначен'}
-          </span>
-          {o.partner && <span className="partner-tag">Партнёр</span>}
-          <span>{o.km} км</span>
-        </div>
-      </div>
-      <div className="order-price">
-        <strong>{money(o.price)}</strong>
-        <span>{o.payment === 'cash' ? 'Наличные' : 'Карта'}</span>
-        <ArrowUpRight size={18} />
-      </div>
-    </button>
-  );
-}
-function CreateForm({
-  onCreate,
-}: {
-  onCreate: (o: Omit<Order, 'id' | 'time' | 'status'>) => void;
-}) {
-  const [driver, setDriver] = useState('none');
-  const [payment, setPayment] = useState('card');
-  return (
-    <form
-      onSubmit={(e) => {
-        e.preventDefault();
-        const d = new FormData(e.currentTarget);
-        onCreate({
-          client: 'Новый демо-клиент',
-          car: String(d.get('car')),
-          from: String(d.get('from')),
-          to: String(d.get('to')),
-          price: Number(d.get('price')),
-          km: Number(d.get('km')),
-          driver: driver === 'none' ? '' : driver,
-          payment: payment as 'card' | 'cash',
-          partner: false,
-        });
-      }}
-    >
-      <label className="field-label">
-        Автомобиль и причина
-        <Input
-          name="car"
-          placeholder="Седан · не заводится"
-          required
-          maxLength={100}
-        />
-      </label>
-      <label className="field-label">
-        Откуда
-        <Input
-          name="from"
-          placeholder="Демо-район, точка А"
-          required
-          maxLength={150}
-        />
-      </label>
-      <label className="field-label">
-        Куда
-        <Input
-          name="to"
-          placeholder="Демо-сервис, точка Б"
-          required
-          maxLength={150}
-        />
-      </label>
-      <div className="form-grid">
-        <label className="field-label">
-          Стоимость, ₽
-          <Input
-            name="price"
-            type="number"
-            min="1"
-            max="1000000"
-            defaultValue="4500"
-            required
-          />
-        </label>
-        <label className="field-label">
-          Плановый пробег, км
-          <Input
-            name="km"
-            type="number"
-            min="1"
-            max="2000"
-            defaultValue="18"
-            required
-          />
-        </label>
-      </div>
-      <div className="form-grid">
-        <div className="field-label">
-          Водитель
-          <Choose
-            value={driver}
-            onChange={setDriver}
-            label="Водитель новой заявки"
-            options={[
-              { value: 'none', label: 'Назначить позже' },
-              ...driverNames.map((d) => ({ value: d, label: d })),
-            ]}
-          />
-        </div>
-        <div className="field-label">
-          Оплата
-          <Choose
-            value={payment}
-            onChange={setPayment}
-            label="Способ оплаты"
-            options={[
-              { value: 'card', label: 'Карта' },
-              { value: 'cash', label: 'Наличные' },
-            ]}
-          />
-        </div>
-      </div>
-      <Button type="submit" className="gold-button form-submit">
-        <Plus /> Создать заявку
-      </Button>
-    </form>
-  );
-}
-function downloadReport(state: State) {
-  const cell = (s: unknown) =>
-    '"' +
-    String(s)
-      .replace(/^[=+@\-\t\r]/, "'$&")
-      .replaceAll('"', '""') +
-    '"';
-  const t = summary(state);
-  const rows = [
-    ['Демонстрационные данные'],
-    ['№', 'Автомобиль', 'Статус', 'Водитель', 'Стоимость ₽', 'Пробег км'],
-    ...state.orders.map((o) => [
-      o.id,
-      o.car,
-      statusLabels[o.status],
-      o.driver,
-      o.price,
-      o.km,
-    ]),
-    [],
-    ['Выручка', t.revenue],
-    ['Расходы', t.expenses],
-    ['Партнёрам', t.partners],
-    ['Остаток до зарплат и налогов', t.balance],
-    [],
-    ['Расход', 'Сумма'],
-    ...state.expenses.map((e) => [e.title, e.amount]),
-  ];
-  const blob = new Blob(
-    ['\uFEFF' + rows.map((r) => r.map(cell).join(';')).join('\r\n')],
-    { type: 'text/csv;charset=utf-8' },
-  );
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = 'evacuation-demo-report.csv';
-  a.click();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
