@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="none" aria-hidden="true">
+  <defs>
+    <linearGradient id="o" x1="16" y1="20" x2="112" y2="108" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFB84A"/>
+      <stop offset="0.45" stop-color="#FF8A00"/>
+      <stop offset="1" stop-color="#E86A00"/>
+    </linearGradient>
+    <filter id="g" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="0" stdDeviation="1.6" flood-color="#FF8A00" flood-opacity="0.55"/>
+    </filter>
+  </defs>
+  <g filter="url(#g)" stroke="url(#o)" stroke-width="5.2" stroke-linecap="round" stroke-linejoin="round">
+    <!-- cab -->
+    <path d="M18 78 V52 h28 l10-14 h22 v40"/>
+    <path d="M50 52 h20"/>
+    <!-- bed -->
+    <path d="M78 78 V58 h32 v20"/>
+    <!-- boom + hook -->
+    <path d="M92 58 L108 30"/>
+    <path d="M108 30 v10"/>
+    <path d="M103 44 q5 8 10 0" stroke-width="4.2"/>
+    <!-- beacon -->
+    <path d="M34 38 v-8" stroke-width="4.5"/>
+    <!-- wheels -->
+    <circle cx="38" cy="86" r="11" fill="none" stroke="url(#o)" stroke-width="5"/>
+    <circle cx="38" cy="86" r="3.8" fill="#FF8A00" stroke="none"/>
+    <circle cx="96" cy="86" r="11" fill="none" stroke="url(#o)" stroke-width="5"/>
+    <circle cx="96" cy="86" r="3.8" fill="#FF8A00" stroke="none"/>
+  </g>
+</svg>

@@ -1,0 +1,146 @@
+{
+  "date": "",
+  "dateDisplay": "",
+  "period": "",
+  "periodLabel": "",
+  "timeStart": "",
+  "timeEnd": "",
+  "dispatcher": "",
+  "equipmentLines": [],
+  "orderCount": 0,
+  "revenue": {
+    "cash": 0,
+    "transfer": 0,
+    "cashless": 0,
+    "partner": 0,
+    "unknown": 0,
+    "total": 0
+  },
+  "expenses": {
+    "depreciation": 0,
+    "driverPay": 0,
+    "driverPayLines": [],
+    "dispatcherPayOrders": 0,
+    "technoprimeDeal": 0,
+    "dispatcherPayByDriver": [],
+    "advertising": 0,
+    "yandexDirect": 0,
+    "yandexDirectManual": 0,
+    "yandexDirectByAccount": [],
+    "otherAds": 0,
+    "fuel": 0,
+    "fuelByLine": [],
+    "planReturn": 0,
+    "planReturnFull": 0,
+    "planReturnByAccount": [],
+    "ydTopUps": 0,
+    "ydTopUpByAccount": [],
+    "carWash": 0,
+    "quads": 0,
+    "other": 0,
+    "offHours": 0,
+    "offHoursByPerson": [],
+    "marketerPay": 0,
+    "marketerPayByPerson": [],
+    "total": 0
+  },
+  "attribution": {
+    "revenueByDispatcher": [],
+    "commissionByDispatcher": [],
+    "carriedIn": [],
+    "carriedOut": []
+  },
+  "carWash": {
+    "amount": 0,
+    "confirmed": false,
+    "source": "",
+    "fromExpenses": 0
+  },
+  "quads": {
+    "enabled": false,
+    "count": 0,
+    "driverPay": 0,
+    "tariff": "",
+    "tariffLabel": "",
+    "rate": 0,
+    "tariffs": [],
+    "drivers": []
+  },
+  "driverShiftMinPay": {
+    "rate": 0,
+    "maxOrders": 0,
+    "applied": [],
+    "counts": [],
+    "names": []
+  },
+  "profit": 0,
+  "shiftStatus": "",
+  "meta": {
+    "yandexBalance": null,
+    "googleSheetStatus": null,
+    "comments": null,
+    "dispatcherName": "",
+    "yandexPlanReturn": null,
+    "mainAccountTransfer": null,
+    "mainAccountControl": null,
+    "overrides": null,
+    "mailingDone": false,
+    "outgoingCalls": null,
+    "outgoingCallsMaxim": null,
+    "outgoingCallsAlexander": null,
+    "carWashAmount": null,
+    "carWashConfirmed": false,
+    "quadsEnabled": false,
+    "quadsCount": null,
+    "quadsDriver": null,
+    "quadsTariff": ""
+  },
+  "scheduledDispatcher": "",
+  "partnerOrderCount": 0,
+  "activeCount": 0,
+  "yandexStale": false,
+  "yandexBalances": [],
+  "yandexLastSyncAt": "",
+  "autoBase": {
+    "orderCount": 0,
+    "equipmentLines": {
+      "partners": 0,
+      "gazelle_next_gas": 0,
+      "gazelle_business": 0,
+      "gazelle_next_diesel": 0,
+      "gazon_next": 0
+    },
+    "revenue": {
+      "cash": 0,
+      "transfer": 0,
+      "cashless": 0,
+      "partner": 0,
+      "unknown": 0
+    },
+    "expenses": {
+      "dispatcherPayOrders": 0,
+      "other": 0,
+      "planReturnFull": 0,
+      "driverPayLines": {},
+      "dispatcherPayByDriver": {},
+      "planReturnByAccount": {
+        "alexander": 0,
+        "maxim": 0,
+        "profi_darya": 0,
+        "profi_ru": 0,
+        "avito": 0
+      },
+      "fuelByLine": {
+        "gazelle_next_gas": 0,
+        "gazelle_business": 0,
+        "gazelle_next_diesel": 0,
+        "gazon_next": 0
+      },
+      "yandexDirectByAccount": {
+        "alexander": 0,
+        "maxim": 0,
+        "avito": 0
+      }
+    }
+  }
+}

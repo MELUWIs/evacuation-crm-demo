@@ -1,0 +1,252 @@
+/* Mobile release 2026-09-07. Keep the dedicated TV layout isolated. */
+html:not(.tpTvOnly) body #root :is(.wkDayTotal,.wkDayTotal--sub) { flex-wrap:wrap !important; gap:6px !important; }
+html:not(.tpTvOnly) body #root :is(.wkDayTotal,.wkDayTotal--sub)>span { white-space:normal !important; overflow:visible !important; text-overflow:clip !important; min-width:0 !important; line-height:1.4 !important; }
+html:not(.tpTvOnly) body #root .tpMaintHero::after { inset:0 !important; width:auto !important; transform:none !important; }
+@media (max-width: 1024px) {
+  html:not(.tpTvOnly) { --tp-nav-height: 64px; }
+  html:not(.tpTvOnly) body #root .shell,
+  html:not(.tpTvOnly) body #root .driverPortal.appShell {
+    height: var(--tp-viewport-height, 100dvh) !important;
+    min-height: 0 !important; max-height: none !important;
+    display: flex !important; flex-direction: column !important;
+    padding-top: env(safe-area-inset-top, 0px) !important;
+    box-sizing: border-box !important;
+  }
+  html:not(.tpTvOnly) body #root :is(.shell__main,.driverAppMain,.driverPickScroll,.driverLineScreen) {
+    flex: 1 1 auto !important; min-width: 0 !important; min-height: 0 !important;
+    overflow-x: hidden !important; overflow-y: auto !important;
+    overscroll-behavior-y: contain; -webkit-overflow-scrolling: touch;
+    scroll-padding-block: 16px; padding-bottom: 24px !important;
+  }
+  html:not(.tpTvOnly) body #root .hdr { position: relative !important; flex: 0 0 auto !important; }
+  html:not(.tpTvOnly) body #root .hdr__row {
+    display: flex !important; flex-wrap: nowrap !important; align-items: center !important;
+    min-height: 60px !important; height: auto !important; padding: 8px 10px !important; gap: 8px !important;
+  }
+  html:not(.tpTvOnly) body #root .hdr__brand { flex: 0 0 40px !important; width: 40px !important; margin: 0 !important; padding: 0 !important; }
+  html:not(.tpTvOnly) body #root :is(.hdr__logo-wrap,.hdr__logo) { width: 40px !important; height: 40px !important; }
+  html:not(.tpTvOnly) body #root .hdr__tools { flex: 1 1 auto !important; min-width: 0 !important; display:flex !important; flex-wrap:wrap !important; justify-content:flex-end !important; gap:4px !important; width:auto !important; margin:0 !important; }
+  html:not(.tpTvOnly) body #root .hdr__tools :is(.btn--icon,.themeToggle) { flex-shrink:0 !important; min-width:34px !important; min-height:36px !important; }
+  html:not(.tpTvOnly) body #root .hdr__gate { min-width:0 !important; max-width:100% !important; font-size:10px !important; white-space:normal !important; overflow-wrap:anywhere; line-height:1.3 !important; }
+  html:not(.tpTvOnly) body #root .mnav {
+    position:relative !important; inset:auto !important; width:100% !important; max-width:100% !important;
+    flex:0 0 auto !important; display:grid !important; grid-template-columns:repeat(7,minmax(0,1fr)) !important;
+    gap:2px !important; min-height:64px !important; height:auto !important;
+    padding:5px max(3px,env(safe-area-inset-right)) max(5px,env(safe-area-inset-bottom)) max(3px,env(safe-area-inset-left)) !important;
+    box-sizing:border-box !important; border-top:1px solid rgba(148,163,184,.2) !important;
+  }
+  html:not(.tpTvOnly) body #root .mnav__btn { min-width:0 !important; min-height:48px !important; height:auto !important; padding:5px 1px !important; gap:4px !important; }
+  html:not(.tpTvOnly) body #root .mnav__btn span { font-size:9px !important; line-height:1.25 !important; white-space:normal !important; overflow:visible !important; overflow-wrap:anywhere; }
+  html:not(.tpTvOnly) body #root .mnav__more { bottom:calc(var(--tp-nav-height) + env(safe-area-inset-bottom) + 8px) !important; max-height:calc(var(--tp-viewport-height,100dvh) - var(--tp-nav-height) - 40px) !important; overflow-y:auto !important; }
+  html:not(.tpTvOnly) body #root :is(.tpPh,.tpPhHero,.tpPhHeroMain,.tpPhHeroSide,.tpPhGrid,.tpPhCard,.tpPhStats,.tpMaint,.tpMaintHead,.tpMaintHead>div,.tpMaintStats,.dtlKpis,.dtlRow,.dtlKpi,.dtlRevLine) { min-width:0 !important; max-width:100% !important; box-sizing:border-box !important; }
+  html:not(.tpTvOnly) body #root .tpPhHero { display:grid !important; grid-template-columns:minmax(0,1fr) !important; padding:16px !important; }
+  html:not(.tpTvOnly) body #root .tpPhStats { display:grid !important; grid-template-columns:repeat(2,minmax(0,1fr)) !important; gap:8px !important; }
+  html:not(.tpTvOnly) body #root .tpPhStats>div { min-width:0 !important; width:auto !important; padding:12px !important; }
+  html:not(.tpTvOnly) body #root .tpPhStats :is(b,span) { white-space:normal !important; overflow-wrap:anywhere !important; }
+  html:not(.tpTvOnly) body #root .tpPhHeroTools { display:flex !important; flex-wrap:wrap !important; }
+  html:not(.tpTvOnly) body #root .tpPhHeroTools>* { min-width:0 !important; flex:1 1 160px !important; }
+  html:not(.tpTvOnly) body #root .tpMaintHero::before { max-width:100%; }
+  html:not(.tpTvOnly) body #root .tpMaintHero::after { inset:0 !important; width:auto !important; transform:none !important; }
+  html:not(.tpTvOnly) body #root .tpMaintTitle { min-width:0 !important; }
+  html:not(.tpTvOnly) body #root :is(.tpMaint h1,.tpMaint h2,.tpMaint h3,.tpPh h2,.tpPh h3) { white-space:normal !important; overflow-wrap:anywhere !important; }
+  html:not(.tpTvOnly) body #root .dtlRevLine { display:flex !important; flex-wrap:wrap !important; gap:4px !important; }
+  html:not(.tpTvOnly) body #root :is(.dtlKpiValue,.dtlRevLine strong,.dtlRevLine b) { max-width:100% !important; white-space:normal !important; overflow-wrap:anywhere !important; font-size:clamp(18px,5.4vw,26px) !important; }
+  html:not(.tpTvOnly) body #root .dtlKpi { overflow:visible !important; }
+  html:not(.tpTvOnly) body #root .dtlHeadTools .dtlBtn { white-space:normal !important; height:auto !important; min-height:42px !important; overflow:visible !important; line-height:1.35 !important; }
+  html:not(.tpTvOnly) body #root .shiftModeBtn { white-space:normal !important; min-width:0 !important; min-height:44px !important; height:auto !important; overflow:visible !important; padding:8px 4px !important; line-height:1.3 !important; }
+  html:not(.tpTvOnly) body #root .lineBoardName { min-width:0 !important; flex:1 1 auto !important; }
+  html:not(.tpTvOnly) body #root .lineBoardName strong { white-space:normal !important; overflow:visible !important; text-overflow:clip !important; overflow-wrap:anywhere; }
+  html:not(.tpTvOnly) body #root .ccSheetScroll { max-width:100% !important; min-width:0 !important; overflow-x:auto !important; }
+  html:not(.tpTvOnly) body #root .ccSheetTotal { display:flex !important; flex-wrap:wrap !important; gap:4px !important; }
+  html:not(.tpTvOnly) body #root .ccSheetTotal>td:empty { display:none !important; }
+  html:not(.tpTvOnly) body #root :is(.wkBoardDays,.shiftsWeekGrid) { display:grid !important; grid-template-columns:repeat(2,minmax(0,1fr)) !important; grid-auto-flow:row !important; grid-auto-columns:auto !important; gap:12px !important; max-height:none !important; overflow:visible !important; }
+  html:not(.tpTvOnly) body #root :is(.wkDayCol,.shiftDayCard) { min-width:0 !important; width:auto !important; max-width:100% !important; }
+  html:not(.tpTvOnly) body #root .wkColPeopleRow { flex-wrap:wrap !important; gap:6px !important; }
+  html:not(.tpTvOnly) body #root .wkColPeopleRow span { white-space:normal !important; overflow:visible !important; overflow-wrap:anywhere; }
+  html:not(.tpTvOnly) body #root .dtlTableScroll { width:100% !important; min-width:0 !important; max-width:100% !important; overflow-x:auto !important; overscroll-behavior-x:contain; }
+  html:not(.tpTvOnly) body #root .tpPrestigeDashV2 { display:grid !important; grid-template-columns:minmax(0,1fr) !important; grid-template-rows:auto !important; gap:14px !important; height:auto !important; min-height:0 !important; overflow:visible !important; }
+  html:not(.tpTvOnly) body #root .tpPrestigeTopV2 { display:grid !important; grid-template-columns:repeat(2,minmax(0,1fr)) !important; grid-template-rows:auto auto auto !important; height:auto !important; gap:10px !important; min-width:0 !important; }
+  html:not(.tpTvOnly) body #root .tpPrestigeTopV2>* { position:relative !important; inset:auto !important; transform:none !important; margin:0 !important; width:auto !important; height:auto !important; min-width:0 !important; min-height:82px !important; padding:12px !important; box-sizing:border-box !important; overflow:visible !important; }
+  html:not(.tpTvOnly) body #root .tpShiftToday { grid-column:1/-1 !important; grid-row:1 !important; display:flex !important; flex-wrap:wrap !important; align-items:center !important; justify-content:space-between !important; gap:8px !important; }
+  html:not(.tpTvOnly) body #root .tpShiftToday em { flex-basis:100% !important; white-space:normal !important; overflow-wrap:anywhere; font-size:14px !important; line-height:1.4 !important; }
+  html:not(.tpTvOnly) body #root .tpDashClock { grid-column:1 !important; grid-row:2 !important; display:flex !important; align-items:center !important; justify-content:center !important; gap:8px !important; background:linear-gradient(145deg,#18202d,#101620); border:1px solid #344158; border-radius:18px; }
+  html:not(.tpTvOnly) body #root .tpDashFace { width:32px !important; height:32px !important; flex:0 0 32px !important; margin:0 !important; }
+  html:not(.tpTvOnly) body #root .tpDashDig { position:static !important; transform:none !important; margin:0 !important; font-size:18px !important; white-space:nowrap !important; }
+  html:not(.tpTvOnly) body #root .tpShiftLeft { grid-column:2 !important; grid-row:2 !important; justify-content:center !important; }
+  html:not(.tpTvOnly) body #root .tpShiftLeft span { white-space:normal !important; font-size:10px !important; letter-spacing:.08em !important; }
+  html:not(.tpTvOnly) body #root .tpDashLeftDig { font-size:20px !important; white-space:nowrap !important; }
+  html:not(.tpTvOnly) body #root .tpGoalSimple { grid-column:1/-1 !important; grid-row:3 !important; min-height:70px !important; display:flex !important; flex-wrap:wrap !important; align-items:center !important; justify-content:space-between !important; gap:8px !important; }
+  html:not(.tpTvOnly) body #root .tpGoalSimple strong { white-space:normal !important; font-size:18px !important; }
+  html:not(.tpTvOnly) body #root .tpPodiumV2 { display:grid !important; grid-template-columns:repeat(2,minmax(0,1fr)) !important; gap:10px !important; width:100% !important; max-width:100% !important; height:auto !important; min-height:0 !important; margin:0 !important; padding:0 !important; align-items:stretch !important; }
+  html:not(.tpTvOnly) body #root .tpPodiumStep { position:relative !important; inset:auto !important; transform:none !important; width:auto !important; min-width:0 !important; min-height:96px !important; height:auto !important; padding:16px 10px !important; border-radius:18px !important; display:flex !important; flex-direction:column !important; justify-content:center !important; gap:8px !important; }
+  html:not(.tpTvOnly) body #root .tpPodiumStep.first { grid-column:1/-1 !important; grid-row:1 !important; }
+  html:not(.tpTvOnly) body #root .tpPodiumStep strong { white-space:normal !important; overflow-wrap:anywhere !important; font-size:clamp(20px,5.9vw,30px) !important; line-height:1.15 !important; }
+  html:not(.tpTvOnly) body #root .tpPodiumStep.first strong { font-size:clamp(28px,8vw,38px) !important; }
+  html:not(.tpTvOnly) body #root .tpProfitStairs { display:none !important; }
+  html:not(.tpTvOnly) body #root .tpDashRoster { display:grid !important; grid-template-columns:minmax(0,1fr) !important; height:auto !important; min-width:0 !important; gap:12px !important; }
+  html:not(.tpTvOnly) body #root .tpVehicleGridV2 { display:grid !important; grid-template-columns:repeat(2,minmax(0,1fr)) !important; height:auto !important; gap:10px !important; }
+  html:not(.tpTvOnly) body #root .tpVehicleDashV2 { min-width:0 !important; height:auto !important; min-height:180px !important; }
+  html:not(.tpTvOnly) body #root .tpVehicleDashV2 :is(header strong,.tpVDriver b,.tpVMoney strong) { white-space:normal !important; overflow:visible !important; max-height:none !important; overflow-wrap:anywhere !important; }
+  html:not(.tpTvOnly) body #root .tpDispatcherVertical { display:grid !important; grid-template-columns:minmax(0,1fr) !important; height:auto !important; min-height:0 !important; padding:16px !important; gap:12px !important; }
+  html:not(.tpTvOnly) body #root .tpDispatcherVertical>* { position:relative !important; inset:auto !important; transform:none !important; min-width:0 !important; margin:0 !important; grid-column:auto !important; }
+  html:not(.tpTvOnly) body #root .tpDispName { white-space:normal !important; overflow:visible !important; font-size:20px !important; }
+  html:not(.tpTvOnly) body #root .tpDispNumbers { display:grid !important; grid-template-columns:repeat(2,minmax(0,1fr)) !important; }
+  html:not(.tpTvOnly) body #root .tpDispNumbers b { white-space:normal !important; overflow-wrap:anywhere !important; }
+  html:not(.tpTvOnly) body :is(.tpAccMask,.odoMask,.driverModalBackdrop,.modal-backdrop) { max-height:var(--tp-viewport-height,100dvh); box-sizing:border-box; overflow-y:auto !important; padding-top:max(12px,env(safe-area-inset-top)) !important; padding-bottom:max(12px,env(safe-area-inset-bottom)) !important; }
+  html:not(.tpTvOnly) body :is(.tpAccCard,.odoCard) { max-width:100% !important; max-height:calc(var(--tp-viewport-height,100dvh) - 24px) !important; min-height:0 !important; overflow-y:auto !important; overflow-wrap:anywhere; box-sizing:border-box !important; }
+  html:not(.tpTvOnly) body #root :is(input,select,textarea) { box-sizing:border-box; min-width:0; max-width:100%; }
+  html:not(.tpTvOnly) body #root .driverPickBarTop { display:flex !important; flex-wrap:wrap !important; gap:8px !important; }
+  html:not(.tpTvOnly) body #root .driverBrandRow { min-width:0 !important; flex:1 1 130px !important; }
+  html:not(.tpTvOnly) body #root .driverPickLabel { white-space:normal !important; overflow:visible !important; text-overflow:clip !important; width:auto !important; max-width:none !important; line-height:1.35 !important; }
+  html:not(.tpTvOnly) body #root .driverAppHeadActions { min-width:0 !important; flex:1 1 175px !important; display:flex !important; flex-wrap:wrap !important; justify-content:flex-end !important; gap:6px !important; }
+  html:not(.tpTvOnly) body #root .driverAppHeadActions .iconBtn { min-width:36px !important; min-height:36px !important; flex-shrink:0 !important; }
+  html:not(.tpTvOnly) body #root .driverAppHead { flex:0 0 auto !important; }
+  html:not(.tpTvOnly) body #root .driverPortal.appShell { padding-right:max(10px,env(safe-area-inset-right)) !important; padding-left:max(10px,env(safe-area-inset-left)) !important; padding-bottom:0 !important; gap:8px !important; }
+  html:not(.tpTvOnly) body #root .driverBottomNav { position:relative !important; inset:auto !important; flex:0 0 auto !important; width:100% !important; height:auto !important; min-height:64px !important; box-sizing:border-box !important; display:grid !important; grid-template-columns:repeat(7,minmax(0,1fr)) !important; gap:2px !important; padding:5px 3px max(5px,env(safe-area-inset-bottom)) !important; }
+  html:not(.tpTvOnly) body #root .driverBottomNav button { min-width:0 !important; min-height:48px !important; height:auto !important; padding:4px 1px !important; }
+  html:not(.tpTvOnly) body #root .driverBottomNav { transform:none !important; margin:0 !important; min-width:0 !important; max-width:100% !important; }
+  html:not(.tpTvOnly) body #root .driverBottomNav span { white-space:normal !important; font-size:9px !important; line-height:1.2 !important; overflow-wrap:anywhere; }
+  html:not(.tpTvOnly) body #root .driverAlertBanner { top:auto !important; bottom:calc(74px + env(safe-area-inset-bottom)) !important; max-height:180px !important; overflow:auto !important; }
+  html:not(.tpTvOnly) body #root .driverPortalPark .tpTableWrap { display:block !important; width:100% !important; max-width:100% !important; min-width:0 !important; overflow:auto !important; overscroll-behavior-x:contain; border:1px solid #334155; border-radius:14px; }
+  html:not(.tpTvOnly) body #root .driverPortalPark .tpTableWrap::before { content:'↔ Проведите по таблице, чтобы увидеть все машины'; display:block; position:sticky; left:0; width:100%; padding:10px; box-sizing:border-box; font-size:11px; line-height:1.4; color:var(--muted,#acb7c7); background:var(--surface,#111827); }
+  html:not(.tpTvOnly) body #root .driverPortalPark table.tpTable { display:table !important; min-width:740px !important; width:100% !important; table-layout:fixed !important; }
+  html:not(.tpTvOnly) body #root .driverPortalPark table.tpTable :is(th,td) { width:auto !important; padding:10px 8px !important; font-size:13px !important; overflow:visible !important; line-height:1.4 !important; }
+  html:not(.tpTvOnly) body #root .driverPortalPark table.tpTable :is(strong,b,span,em,small) { white-space:normal !important; overflow-wrap:anywhere !important; font-size:inherit !important; }
+}
+@media (max-width:1024px) and (max-height:600px) {
+  html:not(.tpTvOnly) body #root .driverAppHead { max-height:30vh !important; min-height:0 !important; overflow:auto !important; }
+  html:not(.tpTvOnly) body #root :is(.driverNotifPrompt,.driverPushHint) { max-height:15vh !important; min-height:0 !important; overflow:auto !important; flex:0 1 auto !important; margin:0 !important; }
+}
+@media (max-width: 600px) {
+  html:not(.tpTvOnly) body #root :is(.wkBoardDays,.shiftsWeekGrid) { grid-template-columns:minmax(0,1fr) !important; }
+  html:not(.tpTvOnly) body #root .tpVehicleGridV2 { grid-template-columns:minmax(0,1fr) !important; }
+  html:not(.tpTvOnly) body #root .parkCards { display:grid !important; grid-template-columns:minmax(0,1fr) !important; gap:12px !important; padding:10px !important; }
+  html:not(.tpTvOnly) body #root .parkCards~.parkTableWrap { display:none !important; }
+  html:not(.tpTvOnly) body #root .parkCard { min-width:0 !important; border:1px solid #334155 !important; border-radius:16px !important; padding:14px !important; background:var(--surface,#111827); font-size:13px !important; opacity:1 !important; }
+  html:not(.tpTvOnly) body #root .parkCard :is(.parkVeh,.parkCardEmpty) { color:var(--text,#e5eaf3) !important; opacity:1 !important; }
+  html:not(.tpTvOnly) body #root .parkCard :is(.parkPayLineTop,.parkMoneyRow>span) { color:var(--muted,#a9b4c4) !important; font-size:12px !important; opacity:1 !important; }
+  html:not(.tpTvOnly) body #root .parkCard :is(.parkCardVehLine,.parkCardHead,.parkDrvOvals) { display:flex !important; flex-wrap:wrap !important; gap:8px !important; white-space:normal !important; }
+  html:not(.tpTvOnly) body #root .parkCardHead { flex-direction:column !important; }
+  html:not(.tpTvOnly) body #root .parkCard :is(.parkVeh,.parkDrvOval,.parkCellText) { font-size:13px !important; white-space:normal !important; overflow:visible !important; overflow-wrap:anywhere !important; }
+  html:not(.tpTvOnly) body #root .parkCard .parkCardMoney { display:grid !important; grid-template-columns:repeat(3,minmax(0,1fr)) !important; gap:8px !important; margin:12px 0 !important; }
+  html:not(.tpTvOnly) body #root .parkCard .parkMoneyRow { display:flex !important; flex-direction:column !important; align-items:flex-start !important; gap:6px !important; min-width:0 !important; }
+  html:not(.tpTvOnly) body #root .parkCard :is(strong,.parkPriceOval) { white-space:normal !important; overflow-wrap:anywhere !important; font-size:14px !important; }
+  html:not(.tpTvOnly) body #root .parkCard .parkPayMix { display:grid !important; gap:8px !important; margin-block:12px !important; }
+  html:not(.tpTvOnly) body #root .parkCardOrders { margin:10px 0 0 !important; padding:0 !important; list-style:none !important; }
+  html:not(.tpTvOnly) body #root .parkCardOrders li { display:flex !important; align-items:flex-start !important; gap:8px !important; min-width:0 !important; }
+  html:not(.tpTvOnly) body #root .parkCardOrderText { flex:1 !important; min-width:0 !important; }
+  html:not(.tpTvOnly) body #root .parkCard .parkCardOrderText em { display:block !important; }
+}
+@media (min-width:601px) and (max-width:1024px) {
+  html:not(.tpTvOnly) body #root .tab { flex-shrink:0 !important; width:auto !important; min-width:max-content !important; max-width:none !important; }
+  html:not(.tpTvOnly) body #root .mileTable { min-width:1120px !important; table-layout:auto !important; }
+  html:not(.tpTvOnly) body #root .mileTable :is(th,td) { min-width:80px !important; overflow:visible !important; white-space:normal !important; overflow-wrap:anywhere !important; }
+}
+@media (min-width:601px) and (max-width:900px) {
+  html:not(.tpTvOnly) body #root .tpOrderSaleGrid { grid-template-columns:minmax(0,1fr) !important; gap:12px !important; }
+  html:not(.tpTvOnly) body #root .tpOrderSaleCol { grid-column:auto !important; width:100% !important; min-width:0 !important; max-width:100% !important; }
+  html:not(.tpTvOnly) body #root :is(.tpOrderSalesExtras,.ocExtras,.tpExFoot) { width:100% !important; min-width:0 !important; max-width:100% !important; box-sizing:border-box !important; }
+}
+@media (max-width:600px) {
+  html:not(.tpTvOnly) body #root .shiftModeBtn { white-space:normal !important; overflow:visible !important; overflow-wrap:anywhere; min-height:44px !important; height:auto !important; line-height:1.3 !important; }
+  html:not(.tpTvOnly) body #root .ccSheetTotal { display:flex !important; flex-wrap:wrap !important; gap:4px !important; }
+  html:not(.tpTvOnly) body #root .ccSheetTotal>td:empty { display:none !important; }
+}
+@media (max-width:1024px) {
+  html:not(.tpTvOnly) body #root .fixLog .fixTools { min-width:0 !important; max-width:100% !important; overflow:visible !important; }
+  html:not(.tpTvOnly) body #root .fixLog .dtlDays { display:flex !important; flex-wrap:wrap !important; min-width:0 !important; width:100% !important; max-width:100% !important; overflow:visible !important; gap:6px !important; }
+  html:not(.tpTvOnly) body #root .fixPkSub { white-space:normal !important; overflow:visible !important; text-overflow:clip !important; overflow-wrap:anywhere; }
+  html:not(.tpTvOnly) body #root .fixKpis { display:grid !important; grid-template-columns:repeat(2,minmax(0,1fr)) !important; min-width:0 !important; overflow:visible !important; gap:8px !important; }
+  html:not(.tpTvOnly) body #root .fixKpis .dtlKpi { min-width:0 !important; width:auto !important; white-space:normal !important; }
+  html:not(.tpTvOnly) body #root .fixKpis .dtlKpi:first-child { grid-column:1/-1 !important; }
+}
+
+/* Desktop CRM dashboard: every section owns a real grid row, so the podium
+   cannot overlap the vehicle cards when the browser is shorter than a TV. */
+@media (min-width:1025px) {
+  html:not(.tpTvOnly) body #root .tpPrestigeDashV2 {
+    display:grid !important;
+    grid-template-columns:minmax(0,1fr) !important;
+    grid-template-rows:72px 232px auto !important;
+    gap:16px !important;
+    height:auto !important;
+    min-height:calc(100vh - 180px) !important;
+    max-height:none !important;
+    overflow:visible !important;
+    align-content:start !important;
+  }
+  html:not(.tpTvOnly) body #root .tpPrestigeTopV2 {
+    grid-row:1 !important;
+    min-width:0 !important;
+    height:72px !important;
+  }
+  html:not(.tpTvOnly) body #root .tpPodium.tpPodiumV2 {
+    grid-row:2 !important;
+    box-sizing:border-box !important;
+    width:min(900px,78vw) !important;
+    height:232px !important;
+    min-height:232px !important;
+    max-height:232px !important;
+    margin:0 auto !important;
+    padding-top:24px !important;
+    overflow:visible !important;
+  }
+  html:not(.tpTvOnly) body #root .tpDashRoster {
+    grid-row:3 !important;
+    position:relative !important;
+    inset:auto !important;
+    transform:none !important;
+    display:grid !important;
+    grid-template-columns:minmax(0,1fr) !important;
+    gap:14px !important;
+    width:100% !important;
+    height:auto !important;
+    min-height:0 !important;
+    max-height:none !important;
+    margin:0 !important;
+    overflow:visible !important;
+  }
+  html:not(.tpTvOnly) body #root .tpVehicleGridV2 {
+    display:grid !important;
+    grid-template-columns:repeat(4,minmax(0,1fr)) !important;
+    gap:12px !important;
+    width:100% !important;
+    height:auto !important;
+    min-height:0 !important;
+    overflow:visible !important;
+  }
+  html:not(.tpTvOnly) body #root .tpVehicleDashV2 {
+    min-width:0 !important;
+    height:auto !important;
+    min-height:245px !important;
+  }
+  html:not(.tpTvOnly) body #root .tpDispatcherVertical {
+    position:relative !important;
+    inset:auto !important;
+    transform:none !important;
+    box-sizing:border-box !important;
+    width:100% !important;
+    max-width:none !important;
+    height:auto !important;
+    min-height:150px !important;
+    margin:0 !important;
+    overflow:visible !important;
+  }
+}
+
+html:not(.tpTvOnly) body #root .dealMtxCell.isOklad {
+  border-color:#f4b942 !important;
+  background:linear-gradient(180deg,rgba(244,185,66,.18),rgba(244,185,66,.08)) !important;
+  color:#ffe29a !important;
+  line-height:1.05 !important;
+}
+html:not(.tpTvOnly) body #root .dealMtxOklad {
+  display:block !important;
+  margin-top:3px !important;
+  color:#f4b942 !important;
+  font-size:8px !important;
+  font-weight:900 !important;
+  letter-spacing:.04em !important;
+  text-transform:uppercase !important;
+  white-space:nowrap !important;
+}
