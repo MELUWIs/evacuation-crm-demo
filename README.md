@@ -2,7 +2,7 @@
 
 CRM для службы эвакуации, над которой я работал около полутора месяцев. Сделал диспетчерскую, кабинет водителя и Android-приложения.
 
-[Открыть демо](https://evacuation-crm-demo.adapage1981.chatgpt.site/) · [Портфолио](https://meluwi-portfolio.adapage1981.chatgpt.site/) · [Telegram](https://t.me/meluwis)
+[Открыть демо](https://meluwis.github.io/demo/) · [Портфолио](https://meluwis.github.io/) · [Telegram](https://t.me/meluwis)
 
 ![Дашборд CRM с тестовыми данными](public/screenshots/dashboard-desktop.png)
 
